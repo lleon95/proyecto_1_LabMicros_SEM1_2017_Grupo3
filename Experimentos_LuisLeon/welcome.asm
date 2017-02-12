@@ -15,9 +15,9 @@ section .data
 ;-----Segmento de datos-----
 
 section .text
-	global _welcome ; Iniciará con _welcome
+	global _start ; Iniciará con _welcome
 
-_welcome:
+_start:
 	; ### Parte 1 - Texto de Bienvenido ###
 	mov rax,1 						; Colocar en modo sys_write
 	mov rdi,1 						; Colocar en consola
