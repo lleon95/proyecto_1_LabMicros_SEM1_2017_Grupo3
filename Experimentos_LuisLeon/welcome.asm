@@ -44,6 +44,8 @@ _start:
         mov rsi,const_headers_txt                               ;Cargar los headers para imprimirlos
         mov rdx,const_headers_size                              ;Tamaño de los headers
         syscall  
+	
+	; ### Salida provisional ###
 	; ### Exit ###
 	mov rax,60						; Salir del sistema sys_exit
 	mov rdi,0
