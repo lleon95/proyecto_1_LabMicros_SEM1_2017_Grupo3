@@ -11,7 +11,7 @@ section .data
 	const_bienvenido_size: equ $-const_bienvenido_txt
 	const_curso_txt: db 'EL-4313 - Lab. Estructura de Microprocesadores - 1S2017', 0xa
 	const_curso_size: equ $-const_curso_txt
-	const_headers_txt: db '####################################', 0xa
+	const_headers_txt: db '##############################################################', 0xa
 	const_headers_size: equ $-const_headers_txt
 
 ;-----Segmento de datos-----
@@ -43,11 +43,10 @@ _start:
         mov rdi,1                                               ;Colocar en consola
         mov rsi,const_headers_txt                               ;Cargar los headers para imprimirlos
         mov rdx,const_headers_size                              ;Tamaño de los headers
-        syscall  
-	
+        syscall
+
 	; ### Salida provisional ###
 	; ### Exit ###
 	mov rax,60						; Salir del sistema sys_exit
 	mov rdi,0
 	syscall
- 
