@@ -1,6 +1,5 @@
 ;############################################################
 ; Para escribir lo requerido en la primera parte del programa
-; Hecho por: LLEON
 ; Fecha: DOM 12/FEB/2017 - 17:30
 ;#############################################################
 
