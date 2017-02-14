@@ -21,8 +21,6 @@ section	.data
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
 
-section .bss
-  file_buffer resb BUFFER_SIZE
 
 section	.text
    global _start         ;must be declared for using gcc
@@ -43,12 +41,14 @@ _start:
   syscall
 
   ; ### Parte 3 - Comprobación de correcto ###
-  mov [fd], rax
+ 
   mov	rdx,0
   cmp	rdx,rax                      ; Condicion si hay bytes
   jg	_filenotfound                ; Si hay una incongruencia
-  jmp _filefound
+  ;ERROR! jmp _filefound                     ; Mensaje de encontrado
 
+  mov [fd], rax                      ; Apertura del puntero
+  
 _fileread:
   ; ### Parte 4 - Leer ###
   mov rax, SYS_READ
@@ -68,7 +68,7 @@ _fileread:
   mov rsi, file_buffer
   syscall
 
-  jp _fileread
+  jmp _fileread
   jmp _exit
 
 _filefound:
@@ -97,3 +97,7 @@ _exit:
 	mov rax,60						; Salir del sistema sys_exit
 	mov rdi,0
 	syscall
+
+section .bss
+  file_buffer resb BUFFER_SIZE
+
