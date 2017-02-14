@@ -41,13 +41,11 @@ _start:
   syscall
 
   ; ### Parte 3 - Comprobación de correcto ###
- 
+  mov [fd], rax                      ; Apertura del puntero 
   mov	rdx,0
   cmp	rdx,rax                      ; Condicion si hay bytes
   jg	_filenotfound                ; Si hay una incongruencia
-  ;ERROR! jmp _filefound                     ; Mensaje de encontrado
-
-  mov [fd], rax                      ; Apertura del puntero
+  jmp _filefound                     ; Mensaje de encontrado
   
 _fileread:
   ; ### Parte 4 - Leer ###
@@ -78,7 +76,7 @@ _filefound:
   mov rsi,const_filefound_txt		 ;Cargar el mensaje
   mov rdx,const_filefound_size	 ;Tamaño del mensaje
   syscall
-  ret
+  jmp _fileread
 
 _filenotfound:
   ; ### Parte X - Mensaje de error FILENOTFOUND ###
