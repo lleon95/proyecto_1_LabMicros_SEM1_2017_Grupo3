@@ -67,7 +67,7 @@ _fileread:
   syscall
 
   jp _fileread
-  jpm _exit
+  jmp _exit
 
 _filefound:
   ; ### Parte X - Mensaje de info - FileFound ###
