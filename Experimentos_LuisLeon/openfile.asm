@@ -43,6 +43,7 @@ _start:
   syscall
 
   ; ### Parte 3 - Comprobación de correcto ###
+  mov [fd], rax
   mov	rdx,0
   cmp	rdx,rax                      ; Condicion si hay bytes
   jg	_filenotfound                ; Si hay una incongruencia
