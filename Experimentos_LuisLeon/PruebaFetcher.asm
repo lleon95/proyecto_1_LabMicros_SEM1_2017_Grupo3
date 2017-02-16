@@ -102,7 +102,7 @@ _prefetch:
 _fetch:
   ; ### Parte 10 - Decodificar el PC en memoria de instrucciones: Pasar de 400004 a 1 ###
   mov r14, r15                ; Hacer copia del PC
-  shr r14, 1                  ; Dividir por 4
+  shr r14, 2                  ; Dividir por 4
   and r14, 0xFFF              ; Obtener los últimos dígitos
   ; Verificar que el contador sea válido
   cmp r14, 150                ; Ver si no hay overflow
