@@ -35,9 +35,9 @@ section	.data
   registers TIMES 32 dw 0        ; Cargar los registros del microprocesador
 
 section	.text
-   global _start         ;must be declared for using gcc
+   global CMAIN         ;must be declared for using gcc
 
-_start:
+CMAIN:
     mov rbp, rsp; for correct debugging
   ; ### Parte 1 - Mensaje de buscando archivo ###
   mov rax,1						             ;Colocar en modo sys_write
@@ -84,7 +84,7 @@ _fileread:
   mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
   mov [r12], r13                ; Añadir la instrucción al arreglo
   add r15, 1                    ; Agregar 1 al PC
-  add r12, 1                    ; Mover el puntero del arreglo al siguiente elemento
+  add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
 
   ; ### Parte 7 - Validar fin de lectura ###
   cmp rax, 0
@@ -98,11 +98,10 @@ _prefetch:
   mov r14, r15                ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
   mov r15, 0x400000           ; Colocar el PC Counter en su posicion inicial
 
-; DEBUG! FALTA PROBAR
 _fetch:
   ; ### Parte 10 - Decodificar el PC en memoria de instrucciones: Pasar de 400004 a 1 ###
   mov r14, r15                ; Hacer copia del PC
-  shr r14, 2                  ; Dividir por 4
+  ;shr r14, 2                  ; Dividir por 4
   and r14, 0xFFF              ; Obtener los últimos dígitos
   ; Verificar que el contador sea válido
   cmp r14, 150                ; Ver si no hay overflow
@@ -122,11 +121,14 @@ _fetch:
   ; ### Parte 13 - PC + 4 ###
   add r15, 4                  ; PC + 4
   jmp _predecode
-; END DEBUG!
 
 _predecode:
   ; ### Parte 14 - Obtener las componentes de la instrucción (opcode, function, ...) ###
-  jmp _exit
+  ; Sacar el Opcode
+  mov r8, rdx       ;Hacemos copia de la instruccion
+  and r8, 0x2F      ;Sacamos el opcode
+  
+  jmp _fetch ; DEBUG!!
 
 _filefound:
   ; ### Parte A - Mensaje de info - FileFound ###
@@ -150,8 +152,8 @@ _instoverflow:
   ; ### Parte C - Mensaje de instrucciones overflow ###
   mov rax,1						             ;Colocar en modo sys_write
   mov rdi,1					               ;Colocar en consola
-  mov rsi,instoverflow_txt		 ;Cargar el mensaje
-  mov rdx,instoverflow_size	 ;Tamaño del mensaje
+  mov rsi,const_instoverflow_txt		 ;Cargar el mensaje
+  mov rdx,const_instoverflow_size	 ;Tamaño del mensaje
   syscall
   jmp _exit
 
