@@ -4,7 +4,7 @@
 %define SYS_WRITE 1
 %define SYS_CLOSE 3
 %define STDOUT 1
-%define BUFFER_SIZE 4
+%define BUFFER_SIZE 1
 
 
 ; Buffer Size en 4 porque son 4x8: 32 bits
@@ -65,6 +65,8 @@ _readinstructions:
   mov r15, 0                        ; Inicializar en el PC Counter
   mov r14, 150                       ; Total de instrucciones
   mov r12, instructions              ; Copiar el puntero de memoria a r12
+  mov r10, 1                         ; Contador de bytes
+  mov r8, 0
 
 _fileread:
   ; ### Parte 5 - Leer una instruccion (32 bits) ###
@@ -73,7 +75,15 @@ _fileread:
   mov rsi, file_buffer
   mov rdx, BUFFER_SIZE
   syscall
+  
+  mov rdx, [file_buffer]        ; Carga el byte en rdx
+  shl r8, 8                    ; Mueve el contenido de r13 a la izquierda
+  or r8, rdx                   ; Hace r13 = r13 or rdx
+  add r10, 1                    ; Siguiente byte (contador)
+  cmp r10, 5                    ; Ver si ya se leyeron todos
+  jne _fileread                 ; Si no se ha completado, leer proximo
 
+_insertInst:
   ; ### Parte 6 - Verificar overflow de instrucciones (más de 150) ###
   mov r13, r14                  ; Hace copia de los registros totales
   sub r13, r15                  ; Resta de los registros totales con el PC Counter
@@ -81,19 +91,21 @@ _fileread:
   jl _instoverflow
 
   ; ### Parte 7 - Agregar instrucciones al arreglo de instrucciones ###
-  mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
-  mov [r12], r13                ; Añadir la instrucción al arreglo
+  ;mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
+  mov [r12], r8                ; Añadir la instrucción al arreglo
   add r15, 1                    ; Agregar 1 al PC
   add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
 
   ; ### Parte 7 - Validar fin de lectura ###
   cmp rax, 0
-  je _prefetch
+  je _startPC
 
   ; ### Parte 8- Retorno a continuar leyendo otra instruccion ###
+  mov r10, 1                    ; Restaurar el contador de bytes
+  mov r8, 0
   jmp _fileread
 
-_prefetch:
+_startPC:
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
   mov r14, r15                ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
   mov r15, 0x400000           ; Colocar el PC Counter en su posicion inicial
@@ -125,9 +137,24 @@ _fetch:
 _predecode:
   ; ### Parte 14 - Obtener las componentes de la instrucción (opcode, function, ...) ###
   ; Sacar el Opcode
-  mov r8, rdx       ;Hacemos copia de la instruccion
-  and r8, 0x2F      ;Sacamos el opcode
+  mov r8, rdx             ;Hacemos copia de la instruccion
+  shr r8, 26
+  and r8, 0x3F
   
+  ; Verificar si es R
+  cmp r8, 0
+  je _FormatoR
+  ; Verificar si es J (3=>)
+  cmp r8, 3
+  jle _FormatoJ
+  ; Verificar si es I - Default
+  jmp _FormatoI
+
+_FormatoR:
+  jmp _fetch ; DEBUG!!
+_FormatoI:
+  jmp _fetch ; DEBUG!!
+_FormatoJ:
   jmp _fetch ; DEBUG!!
 
 _filefound:
