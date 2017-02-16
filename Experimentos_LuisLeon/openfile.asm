@@ -15,7 +15,7 @@ section	.data
   fd dw 0
 
   ; ### Parte X - Mensaje de error FILENOTFOUND ###
-  const_filenotfound_txt: db 'Archivo ROM.txt no encontrado', 0xa
+  const_filenotfound_txt: db 'Archivo ROM no encontrado', 0xa
   const_filenotfound_size: equ $-const_filenotfound_txt
   ; ### Parte X - Mensaje de info FileFound ###
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
