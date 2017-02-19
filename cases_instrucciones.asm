@@ -97,13 +97,38 @@ function_R:
 ;###### Funcionamiento de instrucciones tipo R
 
 ins_Add:
-	
-
-
-ins_Addu:
 	call llamadas_aritmeticas_log
-	add r11,r10 ; operacion de suma
-	mov [r8],r11 ; write back
+	mov eax, r10d
+    add eax, r11d
+    ; Ambos positivos
+    cmp r10d, 0
+    jge ins_Add_r11positivo
+    ; Ambos negativos
+    jl ins_Add_r11negativo
+    	ins_Add_r11positivo:
+            cmp r11d, 0
+            jge ins_Add_respositivo
+            jmp ins_Add_ret
+        ins_Add_r11negativo:
+            cmp r11d, 0
+            jl ins_Add_resnegativo
+            jmp ins_Add_ret
+        ins_Add_respositivo:
+            cmp eax, 0
+            jle overflow
+            jmp ins_Add_ret
+        ins_Add_resnegativo:
+            cmp eax, 0
+            jge overflow               ; Agregar
+  
+        ins_Add_ret: 
+            mov [r8], eax; write back
+	jmp _fetch
+
+ins_Addu: 
+	call llamadas_aritmeticas_log
+	add r10d, r11d; Opera solo 32 bits de r10 y r11
+	mov [r8], r10d; write back
 	jmp _fetch
 
 ins_And:
