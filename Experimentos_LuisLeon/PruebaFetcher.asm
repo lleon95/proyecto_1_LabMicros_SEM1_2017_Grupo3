@@ -33,6 +33,7 @@ section	.data
   data TIMES 401 db -1           ; Cargar el arreglo de memoria en 401 (0x190) words
   stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
   registers TIMES 32 dd 0        ; Cargar los registros del microprocesador
+  temp dq 0
 
 section	.text
    global CMAIN         ;must be declared for using gcc
