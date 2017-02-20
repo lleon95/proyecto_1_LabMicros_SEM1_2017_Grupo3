@@ -14,7 +14,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/ASM/ROM.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -154,20 +154,24 @@ _predecode:
 _FormatoR:
   ; Hallar rs (21-25)
   mov r11, 0x1F 			; Mascara de 5 Bits
-  shl r11, 20				; Correr al LSB
+  shl r11, 21				; Correr al LSB
   and r11, rdx				; Adquirir la direccion de rs
+  shr r11, 21                             ; Devolverse
   ; Hallar rt (16-20)	
   mov r10, 0x1F				; Mascara de 5 Bits
-  shl r10, 15				; Correr al LSB
+  shl r10, 16				; Correr al LSB
   and r10, rdx				; Adquirir la direccion de rt
+  shr r10, 16                             ; Devolverse
   ; Hallar el rd (11-15)	
   mov r12, 0x1F				; Mascara de 5 bits
-  shl r12, 10				; Correr el LSB
+  shl r12, 11				; Correr el LSB
   and r12, rdx				; Adquirir la direccion de rd
+  shr r12, 11                             ; Devolverse
   ; Hallar el shampt (6-10)
   mov r13, 0x1F				; Mascara de 5 bits
-  shl r13, 5				; Correr hasta el MSB
+  shl r13, 6				; Correr hasta el MSB
   and r13, rdx				; Adquirir el shampt
+  shr r13, 6                             ; Devolverse
   ; Hallar el function (0-5)
   mov r9, 0x3F				; Mascara de 6 bits
   and r9, rdx				; Adquirir el function code
@@ -176,19 +180,22 @@ _FormatoR:
 _FormatoI:
   ; Hallar rs (21-25)
   mov r11, 0x1F 			; Mascara de 5 Bits
-  shl r11, 20				; Correr al LSB
+  shl r11, 21				; Correr al LSB
   and r11, rdx				; Adquirir la direccion de rs
+  shr r11, 21                             ; Devolverse
   ; Hallar rt (16-20)	
   mov r10, 0x1F				; Mascara de 5 Bits
-  shl r10, 15				; Correr al LSB
+  shl r10, 16				; Correr al LSB
   and r10, rdx				; Adquirir la direccion de rt
+  shr r10, 16                             ; Devolverse
   ; Hallar el inmediate (0-15)
-  mov r12d, -1				; Hacer máscara de 16 bits
+  mov r12, 0
+  mov r12w, -1				; Hacer máscara de 16 bits
   and r12, rdx				; Adquirir el inmediato
   jmp _fetch ; DEBUG!!
 _FormatoJ:
   mov r13, 0x3F				; Mascara de 6 bits para filtrar opcode
-  shl r13, 25				; Correr hasta el LSB del opcode
+  shl r13, 26				; Correr hasta el LSB del opcode
   not r13					; Invertir para adquirir el jaddress
   and r13, rdx
   jmp _fetch ; DEBUG!!
