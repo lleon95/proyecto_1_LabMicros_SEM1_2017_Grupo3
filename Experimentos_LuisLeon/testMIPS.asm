@@ -1,7 +1,7 @@
 addi $t0, $zero, 10
 addi $t1, $zero, 0
 bne $t1, $t0, increase
-j increase
+j exit
 
 increase:
   addi $t1, $t1, 1
