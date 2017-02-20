@@ -152,10 +152,45 @@ _predecode:
   jmp _FormatoI
 
 _FormatoR:
+  ; Hallar rs (21-25)
+  mov r11, 0x1F 			; Mascara de 5 Bits
+  shl r11, 20				; Correr al LSB
+  and r11, rdx				; Adquirir la direccion de rs
+  ; Hallar rt (16-20)	
+  mov r10, 0x1F				; Mascara de 5 Bits
+  shl r10, 15				; Correr al LSB
+  and r10, rdx				; Adquirir la direccion de rt
+  ; Hallar el rd (11-15)	
+  mov r12, 0x1F				; Mascara de 5 bits
+  shl r12, 10				; Correr el LSB
+  and r12, rdx				; Adquirir la direccion de rd
+  ; Hallar el shampt (6-10)
+  mov r13, 0x1F				; Mascara de 5 bits
+  shl r13, 5				; Correr hasta el MSB
+  and r13, rdx				; Adquirir el shampt
+  ; Hallar el function (0-5)
+  mov r9, 0x3F				; Mascara de 6 bits
+  and r9, rdx				; Adquirir el function code
+  
   jmp _fetch ; DEBUG!!
 _FormatoI:
+  ; Hallar rs (21-25)
+  mov r11, 0x1F 			; Mascara de 5 Bits
+  shl r11, 20				; Correr al LSB
+  and r11, rdx				; Adquirir la direccion de rs
+  ; Hallar rt (16-20)	
+  mov r10, 0x1F				; Mascara de 5 Bits
+  shl r10, 15				; Correr al LSB
+  and r10, rdx				; Adquirir la direccion de rt
+  ; Hallar el inmediate (0-15)
+  mov r12d, -1				; Hacer máscara de 16 bits
+  and r12, rdx				; Adquirir el inmediato
   jmp _fetch ; DEBUG!!
 _FormatoJ:
+  mov r13, 0x3F				; Mascara de 6 bits para filtrar opcode
+  shl r13, 25				; Correr hasta el LSB del opcode
+  not r13					; Invertir para adquirir el jaddress
+  and r13, rdx
   jmp _fetch ; DEBUG!!
 
 _filefound:
