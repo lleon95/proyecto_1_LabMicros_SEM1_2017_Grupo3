@@ -138,7 +138,9 @@ ins_And:
 	jmp _fetch
 
 ins_Jr:
-
+	deco_RS
+	mov r15, r11 ;asigna nueva direccion al Program Counter
+	jmp _fetch
 
 ins_Nor:
 	call llamadas_aritmeticas_log
@@ -154,7 +156,7 @@ ins_Or:
 	jmp _fetch
 
 ;#################################
-ins_Slt:
+ins_Slt: ;NO SE  HA TOMANDO EN CUENTA EL SIGNO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	call llamadas_aritmeticas_log
 	shl r10,32 ;corrimiento para signo
 	shl r11,32
@@ -242,6 +244,105 @@ ins_Beq:
 	je branch_address ;salto si es valido
 	jmp _fetch
 
+ins_Bne:
+	call deco_RS
+	call deco_RT
+	cmp r10,r11 ; comparaciones de registros rs y rt
+	jne branch_address ;salto si es valido
+	jmp _fetch
+
 branch_address:
 	add r15,4
-	add r15,
+	mov r10,r12 ;copiar el dato para hacer la máscara
+	shr r10,15 ;corrimiento para hacer la máscara
+	and r10,1 ;captura el bit de signo
+	cmp r10,1 ;si el número es negativo
+	je Crear_Ext 
+	jmp Branch
+
+Crear_Ext:
+	mov r10, 16383 ;14 veces el primer bit del inmediato
+	shl r10,16
+	or r10,r12 ;Calculo de Branch Address
+	jmp Branch
+
+Branch:
+	shl r12, 2
+	add r15, r12 ;termina el calculo de nueva direccion
+	jmp _fetch
+
+ins_J:
+	add r15, 4
+	shr r15, 28
+	shl r15, 26 ;toma de los primeros cuatros bits del PC
+	or r15, r13 
+	shl r15,2 ; calculo de JumpAddress
+	jmp _fetch
+
+ins_Jal:
+	mov r8,registers ;asigna puntero de arreglo de registros
+	shl r10,3 ;alinear direccion
+	add r8,31 ;mueve direccion de puntero
+	add r15,8
+	mov [r8],r15 ; R[31] = PC + 8
+	sub r15,8
+	jmp ins_J	
+
+ins_Lw:
+	call llamadas_tipo_I
+	mov r10,r12 ;copiar el dato para hacer la máscara
+	shr r10,15 ;corrimiento para hacer la máscara
+	and r10,1 ;captura el bit de signo
+	cmp r10,1 ;si el número es negativo
+	je SignExtLw
+	jmp Lw
+
+SignExtLw:
+	or r12,-65536 ;Extiende el signo
+	jmp Sltiu
+
+Lw:
+	add r11,r12
+	mov r9,data ;asigna puntero de arreglo de registros
+	shl r11,3 ;alinear direccion
+	add r9,r11 ;mueve direccion de puntero
+ 	mov [r8],[r9] ;cargo los datos de la direccion de memoria
+	jmp _fetch
+	
+
+ins_Ori:
+	call llamadas_tipo_I
+	or r11,r12 ;operacion de or
+	mov [r8],r11 ;write back
+	jmp _fetch
+
+ins_Slti:
+
+ins_Sltiu:
+	call llamadas_tipo_I
+	mov r10,r12 ;copiar el dato para hacer la máscara
+	shr r10,15 ;corrimiento para hacer la máscara
+	and r10,1 ;captura el bit de signo
+	cmp r10,1 ;si el número es negativo
+	je SignExtsltiu
+	jmp Sltiu
+
+SignExtsltiu:
+	or r12,-65536 ;Extiende el signo
+	jmp Sltiu
+
+Sltiu:
+	shl r12,32 ; Corrimientos 
+	shr r12,32 
+	cmp r11,r12 ;comparacion
+	jge esmayor_sltiu ; verificacion de mayor o menor
+	mov [r8],1
+	jmp _fetch
+
+esmayor_sltiu: ;si si la comparacion da mayor
+	mov [r8],0 ;escribe 0
+	jmp _fetch
+	
+
+
+
