@@ -29,7 +29,7 @@ section	.data
   const_instoverflow_size: equ $-const_instoverflow_txt
 
   ; ### Parte Fetch ###
-  instructions TIMES 150 dw -1   ; Cargar el arreglo de instrucciones 150 inst
+  instructions TIMES 150 dd 0   ; Cargar el arreglo de instrucciones 150 inst
   data TIMES 401 db -1           ; Cargar el arreglo de memoria en 401 (0x190) words
   stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
   registers TIMES 32 dd 0        ; Cargar los registros del microprocesador
@@ -90,16 +90,15 @@ _insertInst:
   sub r13, r15                  ; Resta de los registros totales con el PC Counter
   cmp r13, 0                    ; Si la resta es menor, hay overflow
   jl _instoverflow
-
-  ; ### Parte 7 - Agregar instrucciones al arreglo de instrucciones ###
-  mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
-  mov [r12], r13                ; Añadir la instrucción al arreglo
-  add r15, 1                    ; Agregar 1 al PC
-  add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
-
   ; ### Parte 7 - Validar fin de lectura ###
   cmp rax, 0
   je _startPC
+  
+  ; ### Parte 7 - Agregar instrucciones al arreglo de instrucciones ###
+  mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
+  mov [r12], r13d                ; Añadir la instrucción al arreglo
+  add r15, 1                    ; Agregar 1 al PC
+  add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
 
   ; ### Parte 8- Retorno a continuar leyendo otra instruccion ###
   mov r10, 1                    ; Restaurar el contador de bytes
@@ -123,11 +122,11 @@ _fetch:
 
   ; ### Parte 11 - Buscar la instrucción (Fetching) ###
   add r14, instructions       ; Sumar elemento al arreglo respectivo
-  mov rdx, [r14]              ; Cargar la instruccion en rdx
+  mov edx, [r14]              ; Cargar la instruccion en rdx
   ; Hasta este punto, tengo la próxima instrucción. Hay que ver si es válida
 
   ; ### Parte 12 - Salida de programa por falta de instrucciones ###
-  cmp rdx, -1                 ; Si la instrucción está cargada de F's, no es válida, entonces salir
+  cmp edx, 0                 ; Si la instrucción está cargada de F's, no es válida, entonces salir
   je _exit
   ; Hasta este punto, tengo todo filtrado de que sea correcto
 
@@ -168,10 +167,10 @@ _FormatoR:
   and r12, rdx				; Adquirir la direccion de rd
   shr r12, 11                             ; Devolverse
   ; Hallar el shampt (6-10)
-  mov r13, 0x1F				; Mascara de 5 bits
-  shl r13, 6				; Correr hasta el MSB
-  and r13, rdx				; Adquirir el shampt
-  shr r13, 6                             ; Devolverse
+  mov r14, 0x1F				; Mascara de 5 bits
+  shl r14, 6				; Correr hasta el MSB
+  and r14, rdx				; Adquirir el shampt
+  shr r14, 6                             ; Devolverse
   ; Hallar el function (0-5)
   mov r9, 0x3F				; Mascara de 6 bits
   and r9, rdx				; Adquirir el function code
@@ -192,6 +191,7 @@ _FormatoI:
   mov r12, 0
   mov r12w, -1				; Hacer máscara de 16 bits
   and r12, rdx				; Adquirir el inmediato
+  mov r14, r12
   jmp _decode ; DEBUG!!
 _FormatoJ:
   mov r13, 0x3F				; Mascara de 6 bits para filtrar opcode
@@ -394,9 +394,9 @@ ins_Or:
 ;#################################
 ins_Slt: ;NO SE  HA TOMANDO EN CUENTA EL SIGNO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	call llamadas_aritmeticas_log
-	shl r10,32 ;corrimiento para signo
-	shl r11,32
-	cmp r10,r11
+	;shl r10,32 ;corrimiento para signo
+	;shl r11,32
+	cmp r10d,r11d
 	jge esmayor_sltu ; verificacion de mayor o menor
         mov r10, 1
 	mov [r8],r10d
@@ -422,7 +422,7 @@ ins_Sltu:
 ins_Sll:
 	call deco_RT
 	call deco_RD
-         mov rcx, r13 
+         mov rcx, r14 
 	shl r10, cl ;corrimiento a la izquierda
 	mov [r8],r10d ;write back
 	jmp _fetch
@@ -430,7 +430,7 @@ ins_Sll:
 ins_Srl:
 	call deco_RT
 	call deco_RD
-         mov rcx, r13
+         mov rcx, r14
 	shr r10,cl ;corrimiento a la derecha
 	mov [r8],r10d ;write back
 	jmp _fetch
