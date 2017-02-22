@@ -1,11 +1,11 @@
 ;Imprimir Fabricante, Modelo, Familia, Tipo, y Porcentaje de utilización
 
  section .data
-   const_fabricante_txt: db ‘Fabricante: ’, 0xa
+   const_fabricante_txt: db 'Fabricante: ', 0xa
    const_fabricante_size: equ $-const_fabricante_txt
 
 
-   const_modelo_txt: db ‘Modelo: ’, 0xa
+   const_modelo_txt: db 'Modelo: ', 0xa
    const_modelo_size: equ $-const_modelo_txt
  
  section .bss
@@ -22,11 +22,17 @@
 mov eax,0
 cpuid  ; obtener id del fabricante
 
-mov fabricante,ebx        ; guardar resultado en ‘fabricante’
+mov [fabricante],ebx        ; guardar resultado en ‘fabricante’
 mov [fabricante+4],edx
 mov [fabricante+8],ecx
 
        ; Imprimir el resultado
+mov rax,1
+mov rdi,1
+mov rsi,const_fabricante_txt
+mov rdx,const_fabricante_size
+syscall
+
 mov edx,12		  ;message length
 mov ecx,fabricante	;message to write (msg is a pointer to the start of the string)
 mov ebx,1	           ;file descriptor (stdout)
