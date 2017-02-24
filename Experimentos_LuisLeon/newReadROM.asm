@@ -22,7 +22,7 @@ section	.data
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
   
-  INSTRUCTIONS TIMES 100 dd 0   ; Memoria de instrucciones
+  INSTRUCTIONS TIMES 150 dd 0   ; Memoria de instrucciones
   DYNAMIC TIMES 200 dd 0        ; Memoria de datos dinámica (RAM)
 
 
