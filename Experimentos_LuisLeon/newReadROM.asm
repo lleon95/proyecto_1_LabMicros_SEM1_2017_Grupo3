@@ -21,7 +21,9 @@ section	.data
   ; ### Parte X - Mensaje de info FileFound ###
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
-  STACK TIMES 100 dd 0
+  
+  INSTRUCTIONS TIMES 100 dd 0   ; Memoria de instrucciones
+  DYNAMIC TIMES 200 dd 0        ; Memoria de datos dinámica (RAM)
 
 
 section	.text
@@ -50,6 +52,9 @@ CMAIN:
   jg	_filenotfound                ; Si hay una incongruencia
   jmp _filefound                     ; Mensaje de encontrado
   
+
+  
+  
 _fileread:
   ; ### Parte 4 - Leer ###
   mov rax, SYS_READ
@@ -73,6 +78,8 @@ _fileread:
   ; Nuevo código DEBUG
   
   ; ## Filtrado de datos
+  cmp r8, 10; Ver si es fin de línea
+  je _writeMem
   cmp r8, 0x5b ; Ver si inicia la direccion
   je _startAddress
   cmp r8, 0x5d ; Ver si finaliza la direccion
@@ -83,8 +90,7 @@ _fileread:
   jle _hexmay
   cmp r8, 102 ; Ver si es hexa minúscula
   jle _hexmin
-  cmp r8, 10; Ver si es fin de línea
-  je _writeMem
+  
 
   ; ## Caracteres numéricos
   _numerico:
@@ -106,23 +112,57 @@ _fileread:
     mov r9, 0
     jmp _fileread
   _append:
-    cmp r9, 0
+    cmp r9, 1
     je _appendAddress
     jmp _appendData
   _appendAddress:
-    shl r10, 8  ; Correr direccion para adjuntar byte
-    or r10, r8  ; Hacer append
+    shl r14, 4  ; Correr direccion para adjuntar byte
+    or r14, r8  ; Hacer append
     jmp _fileread
   _appendData:
-    shl r11, 8  ; Correr data para adjuntar byte
-    or r11, r8  ; Hacer append
+    shl r15, 4  ; Correr data para adjuntar byte
+    or r15, r8  ; Hacer append
     jmp _fileread
+  
+  ; Escritura en el STACK
+  ; 0H - 0040 0000H (Reserved)
+  ; 0040 0000H - 1000 0000 (Program)
+  ; 1000 0000 - 1000 8000 (Constantes)
+  ; 1000 8000 - 3FFF FFFC (Stack)
+  ; Instrucciones 150
+  ; Memoria de Datos 100
+  ; Stack 100
+  
   _writeMem:
-    add r10, STACK
-    mov [r10], r11  ; Almacenar en el Stack
+    ; Tipo instruccion
+    mov r8d, r14d   ; Crear un contenido de direccion auxiliar
+    shr r8d, 16     ; Ver la parte superior de los 32 bits
+    cmp r8d, 0x0040 ; Ver si es instrucción
+    je _writeInstruction
+    cmp r8d, 0x1000 ; Ver si son datos
+    je _writeDynamic
+    jmp _exit       ; DEBUG
+    
+  _writeInstruction:
+    mov r8, 0
+    mov r8w, r14w   ; Copiar los primeros 16 bits  - Recordar eliminar la parte alta de la palabra
+    add r8, INSTRUCTIONS
+    mov [r8], r15  ; Almacenar como instruccion
+    mov r14, 0
+    mov r15, 0
     jmp _fileread
-      
-
+  
+  _writeDynamic:
+    mov r8, 0
+    mov r8w, r14w   ; Copiar los primeros 16 bits de direccion - Recordar eliminar la parte alta de la palabra
+    and r8w, 0x7FFF ; Eliminar el 8000 y poner 0000
+    add r8, DYNAMIC
+    mov [r8], r15   ; Almacenar como dato dinámico
+    mov r14, 0
+    mov r15, 0
+    jmp _fileread
+  
+  
   jmp _fileread
   jmp _exit
 
@@ -133,6 +173,8 @@ _filefound:
   mov rsi,const_filefound_txt		 ;Cargar el mensaje
   mov rdx,const_filefound_size	 ;Tamaño del mensaje
   syscall
+  mov r14, 0
+  mov r15, 0
   jmp _fileread
 
 _filenotfound:
