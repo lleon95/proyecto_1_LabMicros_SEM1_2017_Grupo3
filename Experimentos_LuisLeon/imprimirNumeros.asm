@@ -4,18 +4,30 @@
         SECTION .data		; Data section, initialized variables
 
 	a:	dq	5	; long int a=5;
-fmt:    db "a=%ld", 10, 0	; The printf format, "\n",'0'
+fmt:    db "%ld "	; The printf format, "\n",'0'
 
 
         SECTION .text           ; Code section.
 
         global CMAIN		; the standard gcc entry point
-CMAIN:				; the program label for the entry point
+CMAIN:
+    mov rbp, rsp; for correct debugging				; the program label for the entry point
         push    rbp		; set up stack frame
 	
 	mov	rax,78		; put "a" from store into register
 	mov	rdi,fmt		; format for printf
 	mov	rsi,89         ; first parameter for printf
+	;mov	rdx,rax         ; second parameter for printf
+	mov	rax,0		; no xmm registers
+        call    printf		; Call C function
+
+	pop	rbp		; restore stack
+
+        push    rbp		; set up stack frame
+	
+	mov	rax,78		; put "a" from store into register
+	mov	rdi,fmt		; format for printf
+	mov	rsi,98         ; first parameter for printf
 	;mov	rdx,rax         ; second parameter for printf
 	mov	rax,0		; no xmm registers
         call    printf		; Call C function
