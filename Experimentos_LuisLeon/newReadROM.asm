@@ -21,6 +21,7 @@ section	.data
   ; ### Parte X - Mensaje de info FileFound ###
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
+  STACK TIMES 100 dd 0
 
 
 section	.text
@@ -68,6 +69,59 @@ _fileread:
   mov rdi, STDOUT
   mov rsi, file_buffer
   syscall
+  
+  ; Nuevo código DEBUG
+  
+  ; ## Filtrado de datos
+  cmp r8, 0x5b ; Ver si inicia la direccion
+  je _startAddress
+  cmp r8, 0x5d ; Ver si finaliza la direccion
+  je _endAddress
+  cmp r8, 57 ; Ver si el dato es numérico
+  jle _numerico
+  cmp r8, 70 ; Ver si es hexa mayuscula
+  jle _hexmay
+  cmp r8, 102 ; Ver si es hexa minúscula
+  jle _hexmin
+  cmp r8, 10; Ver si es fin de línea
+  je _writeMem
+
+  ; ## Caracteres numéricos
+  _numerico:
+    sub r8, 48
+    jmp _append
+  ; ## Caracteres Hexa Mayúsculas
+  _hexmay:
+    sub r8, 55 ; 65 start + 10
+    jmp _append
+  _hexmin:
+    sub r8, 87 ; 97 start + 10
+    jmp _append
+  
+  ; ## Operaciones especiales
+  _startAddress:
+    mov r9, 1   ; Encender centinela
+    jmp _fileread
+  _endAddress:
+    mov r9, 0
+    jmp _fileread
+  _append:
+    cmp r9, 0
+    je _appendAddress
+    jmp _appendData
+  _appendAddress:
+    shl r10, 8  ; Correr direccion para adjuntar byte
+    or r10, r8  ; Hacer append
+    jmp _fileread
+  _appendData:
+    shl r11, 8  ; Correr data para adjuntar byte
+    or r11, r8  ; Hacer append
+    jmp _fileread
+  _writeMem:
+    add r10, STACK
+    mov [r10], r11  ; Almacenar en el Stack
+    jmp _fileread
+      
 
   jmp _fileread
   jmp _exit
