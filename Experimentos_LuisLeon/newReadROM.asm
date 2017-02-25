@@ -78,8 +78,14 @@ _fileread:
   ; Nuevo código DEBUG
   
   ; ## Filtrado de datos
+  cmp r8, 32    ; Ver si es espacio
+  je _fileread
+  cmp r8, 59    ; Ver si es ;
+  je _activarComentario
   cmp r8, 10; Ver si es fin de línea
   je _writeMem
+  cmp r9, 2 ; Ver si está el modo de comentario
+  je _fileread
   cmp r8, 0x5b ; Ver si inicia la direccion
   je _startAddress
   cmp r8, 0x5d ; Ver si finaliza la direccion
@@ -91,7 +97,7 @@ _fileread:
   cmp r8, 102 ; Ver si es hexa minúscula
   jle _hexmin
   
-
+  
   ; ## Caracteres numéricos
   _numerico:
     sub r8, 48
@@ -123,6 +129,9 @@ _fileread:
     shl r15, 4  ; Correr data para adjuntar byte
     or r15, r8  ; Hacer append
     jmp _fileread
+  _activarComentario:
+    mov r9, 2   ; Activar comentario
+    jmp _fileread
   
   ; Escritura en el STACK
   ; 0H - 0040 0000H (Reserved)
@@ -150,6 +159,7 @@ _fileread:
     mov [r8], r15  ; Almacenar como instruccion
     mov r14, 0
     mov r15, 0
+    mov r9, 0       ; Restore modo captura
     jmp _fileread
   
   _writeDynamic:
