@@ -14,7 +14,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Prueba.bin'
+  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -283,7 +283,7 @@ _filefound:
   mov rsi,const_filefound_txt		 ;Cargar el mensaje
   mov rdx,const_filefound_size	 ;Tamaño del mensaje
   syscall
-  jmp _readinstructions
+  jmp _fileread
 
 _filenotfound:
   ; ### Parte B - Mensaje de error FILENOTFOUND ###
