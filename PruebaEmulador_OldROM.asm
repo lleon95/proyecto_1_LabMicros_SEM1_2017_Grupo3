@@ -4,7 +4,7 @@
 %define SYS_WRITE 1
 %define SYS_CLOSE 3
 %define STDOUT 1
-%define BUFFER_SIZE 1
+%define BUFFER_SIZE 4
 
 
 ; Buffer Size en 4 porque son 4x8: 32 bits
@@ -25,15 +25,15 @@ section	.data
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
   ; ### Parte C - Mensaje de error - Overflow de instrucciones ###
-  const_instoverflow_txt: db 'Error: Existen más instrucciones de las permitidas (150) o hay una instrucción no válida', 0xa
+  const_instoverflow_txt: db 'Error: Existen más instrucciones de las permitidas (150)', 0xa
   const_instoverflow_size: equ $-const_instoverflow_txt
 
   ; ### Parte Fetch ###
   instructions TIMES 150 dd 0   ; Cargar el arreglo de instrucciones 150 inst
   data TIMES 401 db -1           ; Cargar el arreglo de memoria en 401 (0x190) words
-  ;stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
+  stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
   registers TIMES 32 dd 0        ; Cargar los registros del microprocesador
-  ;temp dq 0
+  temp dq 0
 
 section	.text
    global CMAIN         ;must be declared for using gcc
@@ -46,6 +46,7 @@ CMAIN:
   mov rsi,const_buscandoROM_txt		 ;Cargar el mensaje
   mov rdx,const_buscandoROM_size	 ;Tamaño del mensaje
   syscall
+
   ; ### Parte 2 - Apertura del archivo ###
   mov rax, SYS_OPEN
   mov rdi, file_name
@@ -54,132 +55,55 @@ CMAIN:
   syscall
 
   ; ### Parte 3 - Comprobación de correcto ###
-  mov [fd], rax                      ; Apertura del puntero 
+  mov [fd], rax                      ; Apertura del puntero
   mov	rdx,0
   cmp	rdx,rax                      ; Condicion si hay bytes
   jg	_filenotfound                ; Si hay una incongruencia
   jmp _filefound                     ; Mensaje de encontrado
-  
+
+  ; ### Parte 4 - Inicializar la carga de las instrucciones a memoria de instrucciones ###
+_readinstructions:
+  mov r15, 0                        ; Inicializar en el PC Counter
+  mov r14, 150                       ; Total de instrucciones
+  mov r12, instructions              ; Copiar el puntero de memoria a r12
+  mov r10, 1                         ; Contador de bytes
+  mov r8, 0
+
 _fileread:
-  ; ### Parte 4 - Leer ###
+  ; ### Parte 5 - Leer una instruccion (32 bits) ###
   mov rax, SYS_READ
   mov rdi, [fd]
   mov rsi, file_buffer
   mov rdx, BUFFER_SIZE
   syscall
+;  
+;  mov rdx, [file_buffer]        ; Carga el byte en rdx
+;  shl r8, 8                    ; Mueve el contenido de r13 a la izquierda
+;  or r8, rdx                   ; Hace r13 = r13 or rdx
+;  add r10, 1                    ; Siguiente byte (contador)
+;  cmp r10, 5                    ; Ver si ya se leyeron todos
+;  jne _fileread                 ; Si no se ha completado, leer proximo
 
-  ; Ver si se terminó de leer
+_insertInst:
+  ; ### Parte 6 - Verificar overflow de instrucciones (más de 150) ###
+  mov r13, r14                  ; Hace copia de los registros totales
+  sub r13, r15                  ; Resta de los registros totales con el PC Counter
+  cmp r13, 0                    ; Si la resta es menor, hay overflow
+  jl _instoverflow
+  ; ### Parte 7 - Validar fin de lectura ###
   cmp rax, 0
-  je _startPC	; Comenzar el procesador
+  je _startPC
+  
+  ; ### Parte 7 - Agregar instrucciones al arreglo de instrucciones ###
+  mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
+  mov [r12], r13d                ; Añadir la instrucción al arreglo
+  add r15, 1                    ; Agregar 1 al PC
+  add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
 
-  ; Mostrar contenido en consola
-  mov r8, [file_buffer]
-  mov rdx, rax
-  mov rax, SYS_WRITE
-  mov rdi, STDOUT
-  mov rsi, file_buffer
-  syscall
-  
-  ; Nuevo código DEBUG
-  
-  ; ## Filtrado de datos
-  cmp r8, 32    ; Ver si es espacio
-  je _fileread
-  cmp r8, 59    ; Ver si es ;
-  je _activarComentario
-  cmp r8, 10; Ver si es fin de línea
-  je _writeMem
-  cmp r9, 2 ; Ver si está el modo de comentario
-  je _fileread
-  cmp r8, 0x5b ; Ver si inicia la direccion
-  je _startAddress
-  cmp r8, 0x5d ; Ver si finaliza la direccion
-  je _endAddress
-  cmp r8, 57 ; Ver si el dato es numérico
-  jle _numerico
-  cmp r8, 70 ; Ver si es hexa mayuscula
-  jle _hexmay
-  cmp r8, 102 ; Ver si es hexa minúscula
-  jle _hexmin
-  
-  
-  ; ## Caracteres numéricos
-  _numerico:
-    sub r8, 48
-    jmp _append
-  ; ## Caracteres Hexa Mayúsculas
-  _hexmay:
-    sub r8, 55 ; 65 start + 10
-    jmp _append
-  _hexmin:
-    sub r8, 87 ; 97 start + 10
-    jmp _append
-  
-  ; ## Operaciones especiales
-  _startAddress:
-    mov r9, 1   ; Encender centinela
-    jmp _fileread
-  _endAddress:
-    mov r9, 0
-    jmp _fileread
-  _append:
-    cmp r9, 1
-    je _appendAddress
-    jmp _appendData
-  _appendAddress:
-    shl r14, 4  ; Correr direccion para adjuntar byte
-    or r14, r8  ; Hacer append
-    jmp _fileread
-  _appendData:
-    shl r15, 4  ; Correr data para adjuntar byte
-    or r15, r8  ; Hacer append
-    jmp _fileread
-  _activarComentario:
-    mov r9, 2   ; Activar comentario
-    jmp _fileread
-  
-  ; Escritura en el STACK
-  ; 0H - 0040 0000H (Reserved)
-  ; 0040 0000H - 1000 0000 (Program)
-  ; 1000 0000 - 1000 8000 (Constantes)
-  ; 1000 8000 - 3FFF FFFC (Stack)
-  ; Instrucciones 150
-  ; Memoria de Datos 100
-  ; Stack 100
-  
-  _writeMem:
-    ; Tipo instruccion
-    mov r8d, r14d   ; Crear un contenido de direccion auxiliar
-    shr r8d, 16     ; Ver la parte superior de los 32 bits
-    cmp r8d, 0x0040 ; Ver si es instrucción
-    je _writeInstruction
-    cmp r8d, 0x1000 ; Ver si son datos
-    je _writeDynamic
-    jmp _instoverflow       ; DEBUG
-    
-  _writeInstruction:
-    mov r8, 0
-    mov r8w, r14w   ; Copiar los primeros 16 bits  - Recordar eliminar la parte alta de la palabra
-    add r8, instructions
-    mov [r8], r15  ; Almacenar como instruccion
-    mov r14, 0
-    mov r15, 0
-    mov r9, 0       ; Restore modo captura
-    jmp _fileread
-  
-  _writeDynamic:
-    mov r8, 0
-    mov r8w, r14w   ; Copiar los primeros 16 bits de direccion - Recordar eliminar la parte alta de la palabra
-    and r8w, 0x7FFF ; Eliminar el 8000 y poner 0000
-    add r8, data
-    mov [r8], r15   ; Almacenar como dato dinámico
-    mov r14, 0
-    mov r15, 0
-    jmp _fileread
-  
-  
+  ; ### Parte 8- Retorno a continuar leyendo otra instruccion ###
+  mov r10, 1                    ; Restaurar el contador de bytes
+  mov r8, 0
   jmp _fileread
-
 
 _startPC:
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
