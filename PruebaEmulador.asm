@@ -921,7 +921,7 @@ ins_And:
 ins_Jr:
 	impr_texto text_Jr,len_Jr
 	call siguiente_variable
-	deco_RS
+	call deco_RS
 	mov r15, r11 ;asigna nueva direccion al Program Counter
 	jmp imprimir_all
 
@@ -1001,11 +1001,11 @@ ins_Sub:
 	jl ins_Sub_r11positivo
 	
 	ins_Sub_r11negativo:
-		comp r11d, 0
+		cmp r11d, 0
 		jl ins_Sub_respositivo
 		jmp ins_Sub_ret
 	ins_Sub_r11positivo:
-		comp r11d, 0
+		cmp r11d, 0
 		jge ins_Sub_resnegativo
 		jmp ins_Sub_ret
 	ins_Sub_respositivo:
@@ -1205,8 +1205,6 @@ esmayor_sltiu: ;si si la comparacion da mayor
 	jmp imprimir_all
 	
 ;##############################################seccion de impresion de variables
-overflow:
-		jmp _exit
 
 	
 imprimir_all:
@@ -1230,6 +1228,7 @@ tag2:
 overflow:
         jmp _exit; !!DEBUG
 
-
+error_exit:
+        jmp _exit;
 section .bss
   file_buffer resb BUFFER_SIZE
