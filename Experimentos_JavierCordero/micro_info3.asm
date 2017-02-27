@@ -8,13 +8,13 @@
    const_modelo_txt: db 'Modelo: ', 0xa
    const_modelo_size: equ $-const_modelo_txt
 
-   const_familia_txt: db ‘Familia: ', 0xa
+   const_familia_txt: db 'Familia: ', 0xa
    const_familia_size: equ $-const_familia_txt
 
-   const_tipo_txt: db ‘Tipo: ', 0xa
+   const_tipo_txt: db 'Tipo: ', 0xa
    const_tipo_size: equ $-const_tipo_txt
 
-   const_pu_txt: db ‘Porcentaje de Utilización: ', 0xa
+   const_pu_txt: db 'Porcentaje de Utilización: ', 0xa
    const_pu_size: equ $-const_pu_txt
 
  
