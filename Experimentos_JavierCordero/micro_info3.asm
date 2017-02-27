@@ -77,14 +77,14 @@ int 0x80
 mov eax,1
 cpuid     ; get the model name
 
-mov r8, eax
+mov r8d, eax
 shr r8, 4
 and r8, 0xf
-mov r9, eax
+mov r9d, eax
 shr r9, 12
 and r9, 0xf0
 or r8, r9
-mov modelo, r8
+mov [modelo], r8
 
 ; Imprimir el resultado
 mov rax,1
