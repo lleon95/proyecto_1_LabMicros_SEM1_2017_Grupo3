@@ -19,25 +19,18 @@
 
  
  section .bss
-
    fabricante       resd  12 ; reservar 12 bytes   
    modelo           resd  8  ; reservar 8 bytes
 
  
-
  section .txt
-
    global _start
-
    newline db 0x0a
-
-
 
  _start:
 
- 
-;####################### FABRICANTE ########################
 
+;####################### FABRICANTE ########################
 
 mov eax,0
 cpuid  ; obtener id del fabricante
@@ -68,7 +61,6 @@ mov ecx, newline
 mov ebx,1
 mov eax,4
 int 0x80
-
 
 
 
