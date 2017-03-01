@@ -976,33 +976,33 @@ ins_Mult: ;PREGUTARLE AL PROFE SOBRE ESTA INSTRUCCION
 _insAddi:
 	;impr_texto text_Addi,len_Addi
 	;call siguiente_variable
-	;call llamadas_tipo_I
-	;movsx r12d,r12w
-	;mov eax, r10d
-;    add eax, r12d
-;    ; Ambos positivos
-;    cmp r10d, 0
-;    jge ins_Addi_immpositivo
-;    ; Ambos negativos
-;    jl ins_Addi_immnegativo
-;    	ins_Addi_immpositivo:
-;            cmp r12d, 0
-;            jge ins_Addi_immpositivo
-;            jmp ins_Addi_ret
-;        ins_Addi_immnegativo:
-;            cmp r12d, 0
-;            jl ins_Addi_resnegativo
-;            jmp ins_Add_ret
-;        ins_Addi_respositivo:
-;            cmp eax, 0
-;            jle overflow
-;            jmp ins_Addi_ret
-;        ins_Addi_resnegativo:
-;            cmp eax, 0
-;            jge overflow               ; Agregar
-;  
-;        ins_Addi_ret: 
-;            mov [r8], eax; write back
+	call llamadas_tipo_I
+	movsx r12d,r12w
+	mov eax, r10d
+    add eax, r12d
+    ; Ambos positivos
+    cmp r10d, 0
+    jge ins_Addi_immpositivo
+    ; Ambos negativos
+    jl ins_Addi_immnegativo
+    	ins_Addi_immpositivo:
+            cmp r12d, 0
+            jge ins_Addi_respositivo
+            jmp ins_Addi_ret
+        ins_Addi_immnegativo:
+            cmp r12d, 0
+            jl ins_Addi_resnegativo
+            jmp ins_Add_ret
+        ins_Addi_respositivo:
+            cmp eax, 0
+            jle overflow
+            jmp ins_Addi_ret
+        ins_Addi_resnegativo:
+            cmp eax, 0
+            jge overflow               ; Agregar
+  
+        ins_Addi_ret: 
+            mov [r8], eax; write back
             jmp _fetch
 			;jmp imprimir_all
 
