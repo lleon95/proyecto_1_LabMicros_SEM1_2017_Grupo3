@@ -4,334 +4,9 @@
 %define SYS_WRITE 1
 %define SYS_CLOSE 3
 %define STDOUT 1
-%define BUFFER_SIZE 1
+%define BUFFER_SIZE 4
 extern	printf		; the C function, to be called
-;#################################################################################################################################
-%macro limpiar_pantalla 2 	;recibe 2 parametros
-	mov rax,1	;sys_write
-	mov rdi,1	;std_out
-	mov rsi,%1	;primer parametro: caracteres especiales para limpiar la pantalla
-	mov rdx,%2	;segundo parametro: Tamano 
-	syscall
-%endmacro
 
-%macro impr_texto 2 	;recibe 2 parametros
-	mov rax,1	;sys_write
-	mov rdi,1	;std_out
-	mov rsi,%1	;primer parametro: Texto
-	mov rdx,%2	;segundo parametro: Tamano texto
-	syscall
-%endmacro
-
-%macro impr_numero 1
-	push    rbp		; set up stack frame
-	
-	mov	rax,%1		; put "a" from store into register
-	mov	rdi,fmt		; format for printf
-	mov	rsi,%1         ; first parameter for printf
-	mov	rax,0		; no xmm registers
-        call    printf		; Call C function
-
-	pop	rbp		; restore stack
-
-	mov	rax,0		; normal, no error, return value
-%endmacro
-
-%macro carga 1
-	mov r9,registers
-	mov r8,%1
-	mov r10,r8
-	shl r10,3
-	add r9,r10
-%endmacro
-
-;#################seccion de compracion de Rd
-imprimir_Rd:
-	cmp r12,2
-	je Rd_v0
-	cmp r12,3
-	je Rd_v1
-	cmp r12,4
-	je Rd_a0
-	cmp r12,5
-	je Rd_a1
-	cmp r12,6
-	je Rd_a2
-	cmp r12,7
-	je Rd_a3
-	cmp r12,16
-	je Rd_s0
-	cmp r12,17
-	je Rd_s1
-	cmp r12,18
-	je Rd_s2
-	cmp r12,19
-	je Rd_s3
-	cmp r12,20
-	je Rd_s4
-	cmp r12,21
-	je Rd_s5
-	cmp r12,22
-	je Rd_s6
-	cmp r12,23
-	je Rd_s7
-	cmp r12,29
-	je Rd_sp
-	jmp error_exit
-
-Rd_v0:
-	impr_texto text_$v0,len_$v0
-	jmp imprimir_Rs
-Rd_v1:
-	impr_texto text_$v1,len_$v1
-	jmp imprimir_Rs
-Rd_a0:
-	impr_texto text_$a0,len_$a0
-	jmp imprimir_Rs
-Rd_a1:
-	impr_texto text_$a1,len_$a1
-	jmp imprimir_Rs
-Rd_a2:
-	impr_texto text_$a2,len_$a2
-	jmp imprimir_Rs
-Rd_a3:
-	impr_texto text_$a3,len_$a3
-	jmp imprimir_Rs	
-Rd_s0:
-	impr_texto text_$s0,len_$s0
-	jmp imprimir_Rs
-Rd_s1:
-	impr_texto text_$s1,len_$s1
-	jmp imprimir_Rs
-Rd_s2:
-	impr_texto text_$s2,len_$s2
-	jmp imprimir_Rs
-Rd_s3:
-	impr_texto text_$s3,len_$s3
-	jmp imprimir_Rs
-Rd_s4:
-	impr_texto text_$s4,len_$s4
-	jmp imprimir_Rs
-Rd_s5:
-	impr_texto text_$s5,len_$s5
-	jmp imprimir_Rs
-Rd_s6:
-	impr_texto text_$s6,len_$s6
-	jmp imprimir_Rs
-Rd_s7:
-	impr_texto text_$s7,len_$s7
-	jmp imprimir_Rs
-Rd_sp:
-	impr_texto text_$sp,len_$sp
-	jmp imprimir_Rs	
-
-	;#################seccion de compracion de Rs
-imprimir_Rs:
-	cmp r11,2
-	je Rs_v0
-	cmp r11,3
-	je Rs_v1
-	cmp r11,4
-	je Rs_a0
-	cmp r11,5
-	je Rs_a1
-	cmp r11,6
-	je Rs_a2
-	cmp r11,7
-	je Rs_a3
-	cmp r11,16
-	je Rs_s0
-	cmp r11,17
-	je Rs_s1
-	cmp r11,18
-	je Rs_s2
-	cmp r11,19
-	je Rs_s3
-	cmp r11,20
-	je Rs_s4
-	cmp r11,21
-	je Rs_s5
-	cmp r11,22
-	je Rs_s6
-	cmp r11,23
-	je Rs_s7
-	cmp r11,29
-	je Rs_sp
-	jmp error_exit
-
-siguiente_Rs:
-	cmp r8,0
-	je imprimir_Rt
-	cmp r8,4
-	je imprimir_Rt
-	cmp r8,5
-	je imprimir_Rt
-	je imprimir_Imm
-	
-	
-Rs_v0:
-	impr_texto text_$v0,len_$v0
-	jmp siguiente_Rs
-Rs_v1:
-	impr_texto text_$v1,len_$v1
-	jmp siguiente_Rs
-Rs_a0:
-	impr_texto text_$a0,len_$a0
-	jmp siguiente_Rs
-Rs_a1:
-	impr_texto text_$a1,len_$a1
-	jmp siguiente_Rs
-Rs_a2:
-	impr_texto text_$a2,len_$a2
-	jmp siguiente_Rs
-Rs_a3:
-	impr_texto text_$a3,len_$a3
-	jmp siguiente_Rs
-Rs_s0:
-	impr_texto text_$s0,len_$s0
-	jmp siguiente_Rs
-Rs_s1:
-	impr_texto text_$s1,len_$s1
-	jmp siguiente_Rs
-Rs_s2:
-	impr_texto text_$s2,len_$s2
-	jmp siguiente_Rs
-Rs_s3:
-	impr_texto text_$s3,len_$s3
-	jmp siguiente_Rs
-Rs_s4:
-	impr_texto text_$s4,len_$s4
-	jmp siguiente_Rs
-Rs_s5:
-	impr_texto text_$s5,len_$s5
-	jmp siguiente_Rs
-Rs_s6:
-	impr_texto text_$s6,len_$s6
-	jmp siguiente_Rs
-Rs_s7:
-	impr_texto text_$s7,len_$s7
-	jmp siguiente_Rs
-Rs_sp:
-	impr_texto text_$sp,len_$sp
-	jmp siguiente_Rs
-
-	;#################seccion de compracion de Rt
-imprimir_Rt:
-	cmp r10,2
-	je Rt_v0
-	cmp r10,3
-	je Rt_v1
-	cmp r10,4
-	je Rt_a0
-	cmp r10,5
-	je Rt_a1
-	cmp r10,6
-	je Rt_a2
-	cmp r10,7
-	je Rt_a3
-	cmp r10,16
-	je Rt_s0
-	cmp r10,17
-	je Rt_s1
-	cmp r10,18
-	je Rt_s2
-	cmp r10,19
-	je Rt_s3
-	cmp r10,20
-	je Rt_s4
-	cmp r10,21
-	je Rt_s5
-	cmp r10,22
-	je Rt_s6
-	cmp r10,23
-	je Rt_s7
-	cmp r10,29
-	je Rt_sp
-	jmp error_exit
-
-siguiente_Rt:
-	cmp r8,0
-	je termina
-	cmp r8,4
-	je imprimir_Imm
-	cmp r8,5
-	je imprimir_Imm
-	je imprimir_Rs
-	
-	
-Rt_v0:
-	impr_texto text_$v0,len_$v0
-	jmp siguiente_Rt
-Rt_v1:
-	impr_texto text_$v1,len_$v1
-	jmp siguiente_Rt
-Rt_a0:
-	impr_texto text_$a0,len_$a0
-	jmp siguiente_Rt
-Rt_a1:
-	impr_texto text_$a1,len_$a1
-	jmp siguiente_Rt
-Rt_a2:
-	impr_texto text_$a2,len_$a2
-	jmp siguiente_Rt
-Rt_a3:
-	impr_texto text_$a3,len_$a3
-	jmp siguiente_Rt
-Rt_s0:
-	impr_texto text_$s0,len_$s0
-	jmp siguiente_Rt
-Rt_s1:
-	impr_texto text_$s1,len_$s1
-	jmp siguiente_Rt
-Rt_s2:
-	impr_texto text_$s2,len_$s2
-	jmp siguiente_Rt
-Rt_s3:
-	impr_texto text_$s3,len_$s3
-	jmp siguiente_Rt
-Rt_s4:
-	impr_texto text_$s4,len_$s4
-	jmp siguiente_Rt
-Rt_s5:
-	impr_texto text_$s5,len_$s5
-	jmp siguiente_Rt
-Rt_s6:
-	impr_texto text_$s6,len_$s6
-	jmp siguiente_Rt
-Rt_s7:
-	impr_texto text_$s7,len_$s7
-	jmp siguiente_Rt
-Rt_sp:
-	impr_texto text_$sp,len_$sp
-	jmp siguiente_Rt
-	
-;################## Seccion de imprimir Immediato
-imprimir_Imm:
-	impr_numero r14
-	jmp termina
-
-;################## Seccion de llamadas a variables
-siguiente_variable:
-	cmp r8,0
-	je imprimir_Rd
-	cmp r8,4
-	je imprimir_Rs
-	cmp r8,5
-	je imprimir_Rs
-	je imprimir_Rt
-
-termina:
-	impr_texto text_salto,len_salto
-	ret
-	
-impr_add:
-	impr_texto text_$numero,len_$numero
-	impr_numero r8
-	impr_numero [r9]
-	impr_texto text_salto,len_salto
-	add r9,8
-	add r8,1
-	ret
 ;#################################################################################################################################
 
 ; Buffer Size en 4 porque son 4x8: 32 bits
@@ -341,7 +16,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Prueba_instrucciones.txt'
+  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/testROM.bin'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -465,8 +140,8 @@ len_$s6: equ $-text_$s6
 text_$s7: db '$s7 '
 len_$s7: equ $-text_$s7
 
-text_$sp: db '$sp '
-len_$sp: equ $-text_$sp
+text_$stackp: db '$sp '
+len_$stackp: equ $-text_$stackp
 
 text_$a0: db '$a0 '
 len_$a0: equ $-text_$a0
@@ -494,6 +169,337 @@ len_salto: equ $-text_salto
 
 limpiar    db 0x1b, "[2J", 0x1b, "[H"
 limpiar_tam equ $ - limpiar
+
+
+
+;#################################################################################################################################
+%macro limpiar_pantalla 2 	;recibe 2 parametros
+	mov rax,1	;sys_write
+	mov rdi,1	;std_out
+	mov rsi,%1	;primer parametro: caracteres especiales para limpiar la pantalla
+	mov rdx,%2	;segundo parametro: Tamano 
+	syscall
+%endmacro
+
+%macro impr_texto 2 	;recibe 2 parametros
+	mov rax,1	;sys_write
+	mov rdi,1	;std_out
+	mov rsi,%1	;primer parametro: Texto
+	mov rdx,%2	;segundo parametro: Tamano texto
+	syscall
+        ret
+%endmacro
+
+%macro impr_numero 1
+	push    rbp		; set up stack frame
+	
+	mov	rax,%1		; put "a" from store into register
+	mov	rdi,fmt		; format for printf
+	mov	rsi,%1         ; first parameter for printf
+	mov	rax,0		; no xmm registers
+        call    printf		; Call C function
+
+	pop	rbp		; restore stack
+
+	mov	rax,0		; normal, no error, return value
+%endmacro
+
+%macro carga 1
+	mov r9,registers
+	mov r8,%1
+	mov r10,r8
+	shl r10,3
+	add r9,r10
+%endmacro
+
+;#################seccion de compracion de Rd
+imprimir_Rd:
+	cmp r12,2
+	je Rd_v0
+	cmp r12,3
+	je Rd_v1
+	cmp r12,4
+	je Rd_a0
+	cmp r12,5
+	je Rd_a1
+	cmp r12,6
+	je Rd_a2
+	cmp r12,7
+	je Rd_a3
+	cmp r12,16
+	je Rd_s0
+	cmp r12,17
+	je Rd_s1
+	cmp r12,18
+	je Rd_s2
+	cmp r12,19
+	je Rd_s3
+	cmp r12,20
+	je Rd_s4
+	cmp r12,21
+	je Rd_s5
+	cmp r12,22
+	je Rd_s6
+	cmp r12,23
+	je Rd_s7
+	cmp r12,29
+	je Rd_sp
+	jmp error_exit
+
+Rd_v0:
+	impr_texto text_$v0,len_$v0
+	jmp imprimir_Rs
+Rd_v1:
+	impr_texto text_$v1,len_$v1
+	jmp imprimir_Rs
+Rd_a0:
+	impr_texto text_$a0,len_$a0
+	jmp imprimir_Rs
+Rd_a1:
+	impr_texto text_$a1,len_$a1
+	jmp imprimir_Rs
+Rd_a2:
+	impr_texto text_$a2,len_$a2
+	jmp imprimir_Rs
+Rd_a3:
+	impr_texto text_$a3,len_$a3
+	jmp imprimir_Rs	
+Rd_s0:
+	impr_texto text_$s0,len_$s0
+	jmp imprimir_Rs
+Rd_s1:
+	impr_texto text_$s1,len_$s1
+	jmp imprimir_Rs
+Rd_s2:
+	impr_texto text_$s2,len_$s2
+	jmp imprimir_Rs
+Rd_s3:
+	impr_texto text_$s3,len_$s3
+	jmp imprimir_Rs
+Rd_s4:
+	impr_texto text_$s4,len_$s4
+	jmp imprimir_Rs
+Rd_s5:
+	impr_texto text_$s5,len_$s5
+	jmp imprimir_Rs
+Rd_s6:
+	impr_texto text_$s6,len_$s6
+	jmp imprimir_Rs
+Rd_s7:
+	impr_texto text_$s7,len_$s7
+	jmp imprimir_Rs
+Rd_sp:
+	impr_texto text_$stackp,len_$stackp
+	jmp imprimir_Rs	
+
+	;#################seccion de compracion de Rs
+imprimir_Rs:
+	cmp r11,2
+	je Rs_v0
+	cmp r11,3
+	je Rs_v1
+	cmp r11,4
+	je Rs_a0
+	cmp r11,5
+	je Rs_a1
+	cmp r11,6
+	je Rs_a2
+	cmp r11,7
+	je Rs_a3
+	cmp r11,16
+	je Rs_s0
+	cmp r11,17
+	je Rs_s1
+	cmp r11,18
+	je Rs_s2
+	cmp r11,19
+	je Rs_s3
+	cmp r11,20
+	je Rs_s4
+	cmp r11,21
+	je Rs_s5
+	cmp r11,22
+	je Rs_s6
+	cmp r11,23
+	je Rs_s7
+	cmp r11,29
+	je Rs_sp
+	jmp error_exit
+
+siguiente_Rs:
+	cmp r8,0
+	je imprimir_Rt
+	cmp r8,4
+	je imprimir_Rt
+	cmp r8,5
+	je imprimir_Rt
+	je imprimir_Imm
+	
+	
+Rs_v0:
+	impr_texto text_$v0,len_$v0
+	jmp siguiente_Rs
+Rs_v1:
+	impr_texto text_$v1,len_$v1
+	jmp siguiente_Rs
+Rs_a0:
+	impr_texto text_$a0,len_$a0
+	jmp siguiente_Rs
+Rs_a1:
+	impr_texto text_$a1,len_$a1
+	jmp siguiente_Rs
+Rs_a2:
+	impr_texto text_$a2,len_$a2
+	jmp siguiente_Rs
+Rs_a3:
+	impr_texto text_$a3,len_$a3
+	jmp siguiente_Rs
+Rs_s0:
+	impr_texto text_$s0,len_$s0
+	jmp siguiente_Rs
+Rs_s1:
+	impr_texto text_$s1,len_$s1
+	jmp siguiente_Rs
+Rs_s2:
+	impr_texto text_$s2,len_$s2
+	jmp siguiente_Rs
+Rs_s3:
+	impr_texto text_$s3,len_$s3
+	jmp siguiente_Rs
+Rs_s4:
+	impr_texto text_$s4,len_$s4
+	jmp siguiente_Rs
+Rs_s5:
+	impr_texto text_$s5,len_$s5
+	jmp siguiente_Rs
+Rs_s6:
+	impr_texto text_$s6,len_$s6
+	jmp siguiente_Rs
+Rs_s7:
+	impr_texto text_$s7,len_$s7
+	jmp siguiente_Rs
+Rs_sp:
+	impr_texto text_$stackp,len_$stackp
+	jmp siguiente_Rs
+
+	;#################seccion de compracion de Rt
+imprimir_Rt:
+	cmp r10,2
+	je Rt_v0
+	cmp r10,3
+	je Rt_v1
+	cmp r10,4
+	je Rt_a0
+	cmp r10,5
+	je Rt_a1
+	cmp r10,6
+	je Rt_a2
+	cmp r10,7
+	je Rt_a3
+	cmp r10,16
+	je Rt_s0
+	cmp r10,17
+	je Rt_s1
+	cmp r10,18
+	je Rt_s2
+	cmp r10,19
+	je Rt_s3
+	cmp r10,20
+	je Rt_s4
+	cmp r10,21
+	je Rt_s5
+	cmp r10,22
+	je Rt_s6
+	cmp r10,23
+	je Rt_s7
+	cmp r10,29
+	je Rt_sp
+	jmp error_exit
+
+siguiente_Rt:
+	cmp r8,0
+	je termina
+	cmp r8,4
+	je imprimir_Imm
+	cmp r8,5
+	je imprimir_Imm
+	je imprimir_Rs
+	
+	
+Rt_v0:
+	impr_texto text_$v0,len_$v0
+	jmp siguiente_Rt
+Rt_v1:
+	impr_texto text_$v1,len_$v1
+	jmp siguiente_Rt
+Rt_a0:
+	impr_texto text_$a0,len_$a0
+	jmp siguiente_Rt
+Rt_a1:
+	impr_texto text_$a1,len_$a1
+	jmp siguiente_Rt
+Rt_a2:
+	impr_texto text_$a2,len_$a2
+	jmp siguiente_Rt
+Rt_a3:
+	impr_texto text_$a3,len_$a3
+	jmp siguiente_Rt
+Rt_s0:
+	impr_texto text_$s0,len_$s0
+	jmp siguiente_Rt
+Rt_s1:
+	impr_texto text_$s1,len_$s1
+	jmp siguiente_Rt
+Rt_s2:
+	impr_texto text_$s2,len_$s2
+	jmp siguiente_Rt
+Rt_s3:
+	impr_texto text_$s3,len_$s3
+	jmp siguiente_Rt
+Rt_s4:
+	impr_texto text_$s4,len_$s4
+	jmp siguiente_Rt
+Rt_s5:
+	impr_texto text_$s5,len_$s5
+	jmp siguiente_Rt
+Rt_s6:
+	impr_texto text_$s6,len_$s6
+	jmp siguiente_Rt
+Rt_s7:
+	impr_texto text_$s7,len_$s7
+	jmp siguiente_Rt
+Rt_sp:
+	impr_texto text_$stackp,len_$stackp
+	jmp siguiente_Rt
+	
+;################## Seccion de imprimir Immediato
+imprimir_Imm:
+	impr_numero r14
+	jmp termina
+
+;################## Seccion de llamadas a variables
+siguiente_variable:
+	cmp r8,0
+	je imprimir_Rd
+	cmp r8,4
+	je imprimir_Rs
+	cmp r8,5
+	je imprimir_Rs
+	je imprimir_Rt
+
+termina:
+	impr_texto text_salto,len_salto
+	ret
+	
+impr_add:
+	impr_texto text_$numero,len_$numero
+	impr_numero r8
+	impr_numero [r9]
+	impr_texto text_salto,len_salto
+	add r9,8
+	add r8,1
+	ret
+
 ;###############################################################################################################################################
 
 section	.text
@@ -507,6 +513,7 @@ CMAIN:
   mov rsi,const_buscandoROM_txt		 ;Cargar el mensaje
   mov rdx,const_buscandoROM_size	 ;Tamaño del mensaje
   syscall
+
   ; ### Parte 2 - Apertura del archivo ###
   mov rax, SYS_OPEN
   mov rdi, file_name
@@ -515,130 +522,54 @@ CMAIN:
   syscall
 
   ; ### Parte 3 - Comprobación de correcto ###
-  mov [fd], rax                      ; Apertura del puntero 
+  mov [fd], rax                      ; Apertura del puntero
   mov	rdx,0
   cmp	rdx,rax                      ; Condicion si hay bytes
   jg	_filenotfound                ; Si hay una incongruencia
   jmp _filefound                     ; Mensaje de encontrado
-  
+
+  ; ### Parte 4 - Inicializar la carga de las instrucciones a memoria de instrucciones ###
+_readinstructions:
+  mov r15, 0                        ; Inicializar en el PC Counter
+  mov r14, 150                       ; Total de instrucciones
+  mov r12, instructions              ; Copiar el puntero de memoria a r12
+  mov r10, 1                         ; Contador de bytes
+  mov r8, 0
+
 _fileread:
-  ; ### Parte 4 - Leer ###
+  ; ### Parte 5 - Leer una instruccion (32 bits) ###
   mov rax, SYS_READ
   mov rdi, [fd]
   mov rsi, file_buffer
   mov rdx, BUFFER_SIZE
   syscall
+;  
+;  mov rdx, [file_buffer]        ; Carga el byte en rdx
+;  shl r8, 8                    ; Mueve el contenido de r13 a la izquierda
+;  or r8, rdx                   ; Hace r13 = r13 or rdx
+;  add r10, 1                    ; Siguiente byte (contador)
+;  cmp r10, 5                    ; Ver si ya se leyeron todos
+;  jne _fileread                 ; Si no se ha completado, leer proximo
 
-  ; Ver si se terminó de leer
+_insertInst:
+  ; ### Parte 6 - Verificar overflow de instrucciones (más de 150) ###
+  mov r13, r14                  ; Hace copia de los registros totales
+  sub r13, r15                  ; Resta de los registros totales con el PC Counter
+  cmp r13, 0                    ; Si la resta es menor, hay overflow
+  jl _instoverflow
+  ; ### Parte 7 - Validar fin de lectura ###
   cmp rax, 0
-  je _startPC	; Comenzar el procesador
+  je _startPC
+  
+  ; ### Parte 7 - Agregar instrucciones al arreglo de instrucciones ###
+  mov r13, [file_buffer]        ; Copiar la instruccion en un registro temporal
+  mov [r12], r13d                ; Añadir la instrucción al arreglo
+  add r15, 1                    ; Agregar 1 al PC
+  add r12, 4                    ; Mover el puntero del arreglo al siguiente elemento
 
-  ; Mostrar contenido en consola
-  mov r8, [file_buffer]
-  mov rdx, rax
-  mov rax, SYS_WRITE
-  mov rdi, STDOUT
-  mov rsi, file_buffer
-  syscall
-  
-  ; Nuevo código DEBUG
-  
-  ; ## Filtrado de datos
-  cmp r8, 32    ; Ver si es espacio
-  je _fileread
-  cmp r8, 59    ; Ver si es ;
-  je _activarComentario
-  cmp r8, 10; Ver si es fin de línea
-  je _writeMem
-  cmp r9, 2 ; Ver si está el modo de comentario
-  je _fileread
-  cmp r8, 0x5b ; Ver si inicia la direccion
-  je _startAddress
-  cmp r8, 0x5d ; Ver si finaliza la direccion
-  je _endAddress
-  cmp r8, 57 ; Ver si el dato es numérico
-  jle _numerico
-  cmp r8, 70 ; Ver si es hexa mayuscula
-  jle _hexmay
-  cmp r8, 102 ; Ver si es hexa minúscula
-  jle _hexmin
-  
-  
-  ; ## Caracteres numéricos
-  _numerico:
-    sub r8, 48
-    jmp _append
-  ; ## Caracteres Hexa Mayúsculas
-  _hexmay:
-    sub r8, 55 ; 65 start + 10
-    jmp _append
-  _hexmin:
-    sub r8, 87 ; 97 start + 10
-    jmp _append
-  
-  ; ## Operaciones especiales
-  _startAddress:
-    mov r9, 1   ; Encender centinela
-    jmp _fileread
-  _endAddress:
-    mov r9, 0
-    jmp _fileread
-  _append:
-    cmp r9, 1
-    je _appendAddress
-    jmp _appendData
-  _appendAddress:
-    shl r14, 4  ; Correr direccion para adjuntar byte
-    or r14, r8  ; Hacer append
-    jmp _fileread
-  _appendData:
-    shl r15, 4  ; Correr data para adjuntar byte
-    or r15, r8  ; Hacer append
-    jmp _fileread
-  _activarComentario:
-    mov r9, 2   ; Activar comentario
-    jmp _fileread
-  
-  ; Escritura en el STACK
-  ; 0H - 0040 0000H (Reserved)
-  ; 0040 0000H - 1000 0000 (Program)
-  ; 1000 0000 - 1000 8000 (Constantes)
-  ; 1000 8000 - 3FFF FFFC (Stack)
-  ; Instrucciones 150
-  ; Memoria de Datos 100
-  ; Stack 100
-  
-  _writeMem:
-    ; Tipo instruccion
-    mov r8d, r14d   ; Crear un contenido de direccion auxiliar
-    shr r8d, 16     ; Ver la parte superior de los 32 bits
-    cmp r8d, 0x0040 ; Ver si es instrucción
-    je _writeInstruction
-    cmp r8d, 0x1000 ; Ver si son datos
-    je _writeDynamic
-    jmp _instoverflow       ; DEBUG
-    
-  _writeInstruction:
-    mov r8, 0
-    mov r8w, r14w   ; Copiar los primeros 16 bits  - Recordar eliminar la parte alta de la palabra
-    add r8, instructions
-    mov [r8], r15  ; Almacenar como instruccion
-    mov r14, 0
-    mov r15, 0
-    mov r9, 0       ; Restore modo captura
-    jmp _fileread
-  
-  _writeDynamic:
-    mov r8, 0
-    mov r8w, r14w   ; Copiar los primeros 16 bits de direccion - Recordar eliminar la parte alta de la palabra
-    and r8w, 0x7FFF ; Eliminar el 8000 y poner 0000
-    add r8, data
-    mov [r8], r15   ; Almacenar como dato dinámico
-    mov r14, 0
-    mov r15, 0
-    jmp _fileread
-  
-  
+  ; ### Parte 8- Retorno a continuar leyendo otra instruccion ###
+  mov r10, 1                    ; Restaurar el contador de bytes
+  mov r8, 0
   jmp _fileread
 
 
@@ -744,7 +675,7 @@ _filefound:
   mov rsi,const_filefound_txt		 ;Cargar el mensaje
   mov rdx,const_filefound_size	 ;Tamaño del mensaje
   syscall
-  jmp _fileread
+  jmp _readinstructions
 
 _filenotfound:
   ; ### Parte B - Mensaje de error FILENOTFOUND ###
@@ -815,11 +746,17 @@ llamadas_tipo_I: ;llamada para carga de registros cuando Rt es destino
 	ret
 
 ; ###################### OPcode
+testCode:
+    ; I will put RAX in 0XAA :D
+    mov rax, 0xAA
+    jmp _fetch
+
 _decode:
 ;instrucciones R
 	cmp r8,0 ;identifica instrucciones tipo R
 	je function_R
 	cmp r8,0x8 ;identifica Addi
+        ;je testCode
 	je _insAddi
         ;je _exit
 	cmp r8,0xc ;identifica Andi
@@ -1039,36 +976,35 @@ ins_Mult: ;PREGUTARLE AL PROFE SOBRE ESTA INSTRUCCION
 _insAddi:
 	;impr_texto text_Addi,len_Addi
 	;call siguiente_variable
-	call llamadas_tipo_I
-	movsx r12d,r12w
-	mov eax, r10d
-    add eax, r12d
-    ; Ambos positivos
-    cmp r10d, 0
-    jge ins_Addi_immpositivo
-    ; Ambos negativos
-    jl ins_Addi_immnegativo
-    	ins_Addi_immpositivo:
-            cmp r12d, 0
-            jge ins_Addi_immpositivo
-            jmp ins_Addi_ret
-        ins_Addi_immnegativo:
-            cmp r12d, 0
-            jl ins_Addi_resnegativo
-            jmp ins_Add_ret
-        ins_Addi_respositivo:
-            cmp eax, 0
-            jle overflow
-            jmp ins_Addi_ret
-        ins_Addi_resnegativo:
-            cmp eax, 0
-            jge overflow               ; Agregar
-  
-        ins_Addi_ret: 
-            mov [r8], eax; write back
+	;call llamadas_tipo_I
+	;movsx r12d,r12w
+	;mov eax, r10d
+;    add eax, r12d
+;    ; Ambos positivos
+;    cmp r10d, 0
+;    jge ins_Addi_immpositivo
+;    ; Ambos negativos
+;    jl ins_Addi_immnegativo
+;    	ins_Addi_immpositivo:
+;            cmp r12d, 0
+;            jge ins_Addi_immpositivo
+;            jmp ins_Addi_ret
+;        ins_Addi_immnegativo:
+;            cmp r12d, 0
+;            jl ins_Addi_resnegativo
+;            jmp ins_Add_ret
+;        ins_Addi_respositivo:
+;            cmp eax, 0
+;            jle overflow
+;            jmp ins_Addi_ret
+;        ins_Addi_resnegativo:
+;            cmp eax, 0
+;            jge overflow               ; Agregar
+;  
+;        ins_Addi_ret: 
+;            mov [r8], eax; write back
             jmp _fetch
 			;jmp imprimir_all
-        
 
 
 ins_Andi:
@@ -1089,13 +1025,14 @@ ins_Beq:
 	jmp imprimir_all
 
 ins_Bne:
-	impr_texto text_Bne,len_Bne
+	;impr_texto text_Bne,len_Bne
 	call siguiente_variable
 	call deco_RS
 	call deco_RT
 	cmp r10,r11 ; comparaciones de registros rs y rt
 	jne branch_address ;salto si es valido
-	jmp imprimir_all
+        jmp _fetch ;DEBUG!
+	;jmp imprimir_all
 
 branch_address:
 	;add r15,4
