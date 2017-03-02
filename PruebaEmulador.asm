@@ -24,17 +24,17 @@ extern	printf		; the C function, to be called
 %endmacro
 
 %macro impr_numero 1
-	push    rbp		; set up stack frame
+	;push    rbp		; set up stack frame
 	
-	mov	rax,%1		; put "a" from store into register
-	mov	rdi,fmt		; format for printf
-	mov	rsi,%1         ; first parameter for printf
-	mov	rax,0		; no xmm registers
-        call    printf		; Call C function
+	;mov	rax,%1		; put "a" from store into register
+	;mov	rdi,fmt		; format for printf
+	;mov	rsi,%1         ; first parameter for printf
+	;mov	rax,0		; no xmm registers
+    ;    call    printf		; Call C function
 
-	pop	rbp		; restore stack
+	;pop	rbp		; restore stack
 
-	mov	rax,0		; normal, no error, return value
+	;mov	rax,0		; normal, no error, return value
 %endmacro
 
 %macro carga 1
