@@ -24,17 +24,17 @@ extern	printf		; the C function, to be called
 %endmacro
 
 %macro impr_numero 1
-	push    rbp		; set up stack frame
+	 push    rbp		; set up stack frame
 	
-	mov	rax,%1		; put "a" from store into register
-	mov	rdi,fmt		; format for printf
-	mov	rsi,%1         ; first parameter for printf
-	mov	rax,0		; no xmm registers
-        call    printf		; Call C function
+	 mov	rax,%1		; put "a" from store into register
+	 mov	rdi,fmt		; format for printf
+	 mov	rsi,%1         ; first parameter for printf
+	 mov	rax,0		; no xmm registers
+         call    printf		; Call C function
 
-	pop	rbp		; restore stack
+	 pop	rbp		; restore stack
 
-	mov	rax,0		; normal, no error, return value
+	 mov	rax,0		; normal, no error, return value
 %endmacro
 
 %macro carga 1
@@ -398,6 +398,9 @@ len_Jal: equ $-text_Jal
 
 text_Jr: db 'Jr '
 len_Jr: equ $-text_Jr
+
+text_Lui: db 'Lui '
+len_Lui: equ $-text_Lui
 
 text_Lw: db 'Lw '
 len_Lw: equ $-text_Lw
@@ -839,6 +842,9 @@ _decode:
 	je ins_Slti
 	cmp r8,0xb ;identifica Sltiu
 	je ins_Sltiu
+	cmp r8,0xf
+	je ins_Lui ;identifica Lui
+	
 ;############################
 function_R:
 	cmp r9,0x20 ;identifica Add
@@ -1049,7 +1055,7 @@ ins_Addi:
     jl ins_Addi_immnegativo
     	ins_Addi_immpositivo:
             cmp r12d, 0
-            jge ins_Addi_immpositivo
+            jge ins_Addi_respositivo
             jmp ins_Addi_ret
         ins_Addi_immnegativo:
             cmp r12d, 0
@@ -1135,8 +1141,17 @@ ins_Jal:
 	add r15,4
 	mov [r8],r15d ; R[31] = PC + 8
 	sub r15,4
-	jmp ins_J	
+	jmp ins_J
 
+ins_Lui:
+	impr_texto text_Lui,len_Lui
+	impr_numero r12
+	impr_texto text_salto,len_salto
+	call deco_RT_I
+	shl r12,16
+	mov [r8],r12d
+	jmp imprimir_all
+	
 ins_Lw:
 	impr_texto text_Lw,len_Lw
 	call siguiente_variable
