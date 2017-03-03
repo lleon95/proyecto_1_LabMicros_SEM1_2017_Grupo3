@@ -1,6 +1,25 @@
 ;Imprimir Fabricante, Modelo, Familia, Tipo, y Porcentaje de utilización
 
+extern	printf		; the C function, to be called
+
+%macro impr_numero 1
+	push    rbp		; set up stack frame
+	
+	mov	rax,%1		; put "a" from store into register
+	mov	rdi,fmt		; format for printf
+	mov	rsi,%1         ; first parameter for printf
+	mov	rax,0		; no xmm registers
+        call    printf		; Call C function
+
+	pop	rbp		; restore stack
+
+	mov	rax,0		; normal, no error, return value
+%endmacro
+
+
  section .data
+
+   fmt:    db "%ld "	; The printf format
 
    const_fabricante_txt: db 'Fabricante: ', 0xa
    const_fabricante_size: equ $-const_fabricante_txt
@@ -19,25 +38,18 @@
 
  
  section .bss
-
    fabricante       resd  12 ; reservar 12 bytes   
    modelo           resd  8  ; reservar 8 bytes
 
  
-
  section .txt
-
    global _start
-
    newline db 0x0a
-
-
 
  _start:
 
- 
-;####################### FABRICANTE ########################
 
+;####################### FABRICANTE ########################
 
 mov eax,0
 cpuid  ; obtener id del fabricante
@@ -68,7 +80,6 @@ mov ecx, newline
 mov ebx,1
 mov eax,4
 int 0x80
-
 
 
 
