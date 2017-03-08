@@ -678,6 +678,8 @@ _predecode:
   ; ### Parte 14 - Obtener las componentes de la instrucción (opcode, function, ...) ###
   ; Sacar el Opcode
   mov r8, rdx             ;Hacemos copia de la instruccion
+  cmp rdx, 0
+  je _nop
   shr r8, 26
   and r8, 0x3F
   
@@ -1244,6 +1246,9 @@ tag2:
 
 overflow:
         jmp _exit; !!DEBUG
+        
+_nop:
+    jmp _fetch
 
 
 section .bss
