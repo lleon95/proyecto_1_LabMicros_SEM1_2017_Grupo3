@@ -24,17 +24,17 @@ extern	printf		; the C function, to be called
 %endmacro
 
 %macro impr_numero 1
-	;push    rbp		; set up stack frame
+	 push    rbp		; set up stack frame
 	
-	;mov	rax,%1		; put "a" from store into register
-	;mov	rdi,fmt		; format for printf
-	;mov	rsi,%1         ; first parameter for printf
-	;mov	rax,0		; no xmm registers
-    ;    call    printf		; Call C function
+	 mov	rax,%1		; put "a" from store into register
+	 mov	rdi,fmt		; format for printf
+	 mov	rsi,%1         ; first parameter for printf
+	 mov	rax,0		; no xmm registers
+         call    printf		; Call C function
 
-	;pop	rbp		; restore stack
+	 pop	rbp		; restore stack
 
-	;mov	rax,0		; normal, no error, return value
+	 mov	rax,0		; normal, no error, return value
 %endmacro
 
 %macro carga 1
@@ -341,7 +341,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Prueba_instrucciones.txt'
+  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -398,6 +398,9 @@ len_Jal: equ $-text_Jal
 
 text_Jr: db 'Jr '
 len_Jr: equ $-text_Jr
+
+text_Lui: db 'Lui '
+len_Lui: equ $-text_Lui
 
 text_Lw: db 'Lw '
 len_Lw: equ $-text_Lw
@@ -820,8 +823,7 @@ _decode:
 	cmp r8,0 ;identifica instrucciones tipo R
 	je function_R
 	cmp r8,0x8 ;identifica Addi
-	je _insAddi
-        ;je _exit
+	je ins_Addi
 	cmp r8,0xc ;identifica Andi
 	je ins_Andi
 	cmp r8,0x4 ;identifica Beq
@@ -840,6 +842,9 @@ _decode:
 	je ins_Slti
 	cmp r8,0xb ;identifica Sltiu
 	je ins_Sltiu
+	cmp r8,0xf
+	je ins_Lui ;identifica Lui
+	
 ;############################
 function_R:
 	cmp r9,0x20 ;identifica Add
@@ -922,7 +927,7 @@ ins_And:
 ins_Jr:
 	impr_texto text_Jr,len_Jr
 	call siguiente_variable
-	call deco_RS
+	deco_RS
 	mov r15, r11 ;asigna nueva direccion al Program Counter
 	jmp imprimir_all
 
@@ -1002,11 +1007,11 @@ ins_Sub:
 	jl ins_Sub_r11positivo
 	
 	ins_Sub_r11negativo:
-		cmp r11d, 0
+		comp r11d, 0
 		jl ins_Sub_respositivo
 		jmp ins_Sub_ret
 	ins_Sub_r11positivo:
-		cmp r11d, 0
+		comp r11d, 0
 		jge ins_Sub_resnegativo
 		jmp ins_Sub_ret
 	ins_Sub_respositivo:
@@ -1036,9 +1041,9 @@ ins_Mult: ;PREGUTARLE AL PROFE SOBRE ESTA INSTRUCCION
 
 ;####################################Funcionamiento de instrucciones tipo I
 
-_insAddi:
-	;impr_texto text_Addi,len_Addi
-	;call siguiente_variable
+ins_Addi:
+	impr_texto text_Addi,len_Addi
+	call siguiente_variable
 	call llamadas_tipo_I
 	movsx r12d,r12w
 	mov eax, r10d
@@ -1050,7 +1055,7 @@ _insAddi:
     jl ins_Addi_immnegativo
     	ins_Addi_immpositivo:
             cmp r12d, 0
-            jge ins_Addi_immpositivo
+            jge ins_Addi_respositivo
             jmp ins_Addi_ret
         ins_Addi_immnegativo:
             cmp r12d, 0
@@ -1066,9 +1071,7 @@ _insAddi:
   
         ins_Addi_ret: 
             mov [r8], eax; write back
-            jmp _fetch
-			;jmp imprimir_all
-        
+			jmp imprimir_all
 
 
 ins_Andi:
@@ -1138,8 +1141,17 @@ ins_Jal:
 	add r15,4
 	mov [r8],r15d ; R[31] = PC + 8
 	sub r15,4
-	jmp ins_J	
+	jmp ins_J
 
+ins_Lui:
+	impr_texto text_Lui,len_Lui
+	impr_numero r12
+	impr_texto text_salto,len_salto
+	call deco_RT_I
+	shl r12,16
+	mov [r8],r12d
+	jmp imprimir_all
+	
 ins_Lw:
 	impr_texto text_Lw,len_Lw
 	call siguiente_variable
@@ -1208,6 +1220,8 @@ esmayor_sltiu: ;si si la comparacion da mayor
 	jmp imprimir_all
 	
 ;##############################################seccion de impresion de variables
+overflow:
+		jmp _exit
 
 	
 imprimir_all:
@@ -1231,7 +1245,6 @@ tag2:
 overflow:
         jmp _exit; !!DEBUG
 
-error_exit:
-        jmp _exit;
+
 section .bss
   file_buffer resb BUFFER_SIZE
