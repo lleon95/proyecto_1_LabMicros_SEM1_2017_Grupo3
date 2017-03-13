@@ -348,7 +348,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -1033,11 +1033,11 @@ ins_Sub:
 	jl ins_Sub_r11positivo
 	
 	ins_Sub_r11negativo:
-		comp r11d, 0
+		cmp r11d, 0
 		jl ins_Sub_respositivo
 		jmp ins_Sub_ret
 	ins_Sub_r11positivo:
-		comp r11d, 0
+		cmp r11d, 0
 		jge ins_Sub_resnegativo
 		jmp ins_Sub_ret
 	ins_Sub_respositivo:
@@ -1246,8 +1246,7 @@ esmayor_sltiu: ;si si la comparacion da mayor
 	jmp imprimir_all
 	
 ;##############################################seccion de impresion de variables
-overflow:
-		jmp _exit
+
 
 	
 imprimir_all:
