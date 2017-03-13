@@ -30,19 +30,63 @@ extern	printf		; the C function, to be called
 
 %endmacro
 
-%macro impr_numero 1
-	 push    rbp		; set up stack frame
-	
-	 mov	rax,%1		; put "a" from store into register
-	 mov	rdi,fmt		; format for printf
-	 mov	rsi,%1         ; first parameter for printf
-	 mov	rax,0		; no xmm registers
-         call    printf		; Call C function
-
-	 pop	rbp		; restore stack
-
-	 mov	rax,0		; normal, no error, return value
+%macro impr_registro 1
+	mov r8,%1
+	shr r8,24
+	impr_inmediato r8
+	mov r8,%1
+	shr r8,16
+	and r8,0xff
+	impr_inmediato r8
+	mov r8,%1
+	shr r8,8
+	and r8,0xff
+	impr_inmediato r8
+	mov r8,%1	
+	and r8,0xff
+	impr_inmediato r8
 %endmacro
+
+%macro impr_inmediato 1
+	impr_numero %1
+	mov [modelo],r9
+	mov [modelo+1],r8
+	impr_texto modelo,2
+%endmacro
+
+%macro impr_numero 1
+    mov r8, %1
+    mov r9,r8
+    and r8,0xf
+    shr r9,4
+    cmp r8,10
+    jge %%sumar8
+ %%ret1:
+    cmp r9,10
+    jge %%sumar9
+ %%ret2:
+    add r8,48
+    add r9,48
+    jmp %%end
+    
+  %%sumar8:
+    add r8,7
+    jmp %%ret1
+  %%sumar9:
+    add r9,7
+    jmp %%ret2  
+   
+  %%end:
+%endmacro
+
+inmediato:
+	mov r8,r12
+	mov r14,r12
+	shr r8,8
+	impr_inmediato r8 ;macro de inmediato
+	and r14,0xff
+	impr_inmediato r14	
+	ret
 
 %macro carga 1
 	mov r9,registers
@@ -84,7 +128,7 @@ imprimir_Rd:
 	je Rd_s7
 	cmp r12,29
 	je Rd_sp
-	jmp error_exit
+	jmp _exit
 
 Rd_v0:
 	impr_texto text_$v0,len_$v0
@@ -164,7 +208,7 @@ imprimir_Rs:
 	je Rs_s7
 	cmp r11,29
 	je Rs_sp
-	jmp error_exit
+	jmp _exit
 
 siguiente_Rs:
 	cmp r8,0
@@ -254,7 +298,7 @@ imprimir_Rt:
 	je Rt_s7
 	cmp r10,29
 	je Rt_sp
-	jmp error_exit
+	jmp _exit
 
 siguiente_Rt:
 	cmp r8,0
@@ -314,7 +358,7 @@ Rt_sp:
 	
 ;################## Seccion de imprimir Immediato
 imprimir_Imm:
-	impr_numero r14
+    call inmediato
 	jmp termina
 
 ;################## Seccion de llamadas a variables
@@ -334,7 +378,7 @@ termina:
 impr_add:
 	impr_texto text_$numero,len_$numero
 	impr_numero r8
-	impr_numero [r9]
+	impr_registro [r9]
 	impr_texto text_salto,len_salto
 	add r9,8
 	add r8,1
@@ -348,7 +392,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -513,16 +557,8 @@ section	.text
    global CMAIN         ;must be declared for using gcc
 
 CMAIN:
-	;## abrir el archivo de resultados
-	mov rax,2
-	mov rdi,resulttxt
-	mov rsi,(2000o+1000o+100o+2o)
-	mov rdx,(700o+40o+4o)
-	syscall	
-	mov [result_fd],rax
-
-
     mov rbp, rsp; for correct debugging
+   
   ; ### Parte 1 - Mensaje de buscando archivo ###
   mov rax,1						             ;Colocar en modo sys_write
   mov rdi,1					               ;Colocar en consola
@@ -556,6 +592,8 @@ _fileread:
   je _startPC	; Comenzar el procesador
 
   ; Mostrar contenido en consola
+  mov r8, 0
+
   mov r8, [file_buffer]
   mov rdx, rax
   mov rax, SYS_WRITE
@@ -665,6 +703,14 @@ _fileread:
 
 
 _startPC:
+	;## abrir el archivo de resultados
+    mov rax,2
+    mov rdi,resulttxt
+    mov rsi,(2000o+1000o+100o+2o)
+    mov rdx,(700o+40o+4o)
+    syscall	
+    mov [result_fd],rax
+
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
   mov r14, r15                ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
   mov r15, 0x400000           ; Colocar el PC Counter en su posicion inicial
@@ -768,6 +814,8 @@ _filefound:
   mov rsi,const_filefound_txt		 ;Cargar el mensaje
   mov rdx,const_filefound_size	 ;Tamaño del mensaje
   syscall
+  mov r9,0
+  
   jmp _fileread
 
 _filenotfound:
@@ -953,7 +1001,7 @@ ins_And:
 ins_Jr:
 	impr_texto text_Jr,len_Jr
 	call siguiente_variable
-	deco_RS
+	call deco_RS
 	mov r15, r11 ;asigna nueva direccion al Program Counter
 	jmp imprimir_all
 
@@ -1097,7 +1145,8 @@ ins_Addi:
   
         ins_Addi_ret: 
             mov [r8], eax; write back
-			jmp imprimir_all
+            ;jmp _fetch
+		jmp imprimir_all
 
 
 ins_Andi:
@@ -1277,3 +1326,4 @@ _nop:
 section .bss
   file_buffer resb BUFFER_SIZE
   result_fd resb 8
+  modelo           resd  8  ; reservar 8 bytes
