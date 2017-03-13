@@ -21,6 +21,13 @@ extern	printf		; the C function, to be called
 	mov rsi,%1	;primer parametro: Texto
 	mov rdx,%2	;segundo parametro: Tamano texto
 	syscall
+	
+	mov rax,1	;sys_write
+	mov rdi,[result_fd]	;std_out
+	mov rsi,%1	;primer parametro: Texto
+	mov rdx,%2	;segundo parametro: Tamano texto
+	syscall
+
 %endmacro
 
 %macro impr_numero 1
@@ -129,7 +136,7 @@ Rd_sp:
 imprimir_Rs:
 	cmp r11,2
 	je Rs_v0
-	cmp r11,3
+	cmp r11,3d
 	je Rs_v1
 	cmp r11,4
 	je Rs_a0
@@ -365,6 +372,9 @@ section	.data
 ;###############################################################################################################################################reciente
 fmt:    db "%ld "	; The printf format
 
+;
+resulttxt: db 'result.txt',0
+
 ;################# seccion de variables a imprimir texto
 ejecutando: db 'Ejecutando la instruccion: '
 ejecutando_len: equ $-ejecutando
@@ -503,6 +513,15 @@ section	.text
    global CMAIN         ;must be declared for using gcc
 
 CMAIN:
+	;## abrir el archivo de resultados
+	mov rax,2
+	mov rdi,resulttxt
+	mov rsi,(2000o+1000o+100o+2o)
+	mov rdx,(700o+40o+4o)
+	syscall	
+	mov [result_fd],rax
+
+
     mov rbp, rsp; for correct debugging
   ; ### Parte 1 - Mensaje de buscando archivo ###
   mov rax,1						             ;Colocar en modo sys_write
@@ -771,9 +790,14 @@ _instoverflow:
 
 _exit:
   ; ### Cierra el archivo ###
-  mov rax, SYS_CLOSE
-  mov rdi, fd
-  syscall
+	;##Cierra el archivo
+	mov rax,3
+	mov rdi,[result_fd]
+	syscall
+  
+	mov rax, SYS_CLOSE
+	mov rdi, fd
+  	syscall
   ; ### Exit ###
 	mov rax,60						; Salir del sistema sys_exit
 	mov rdi,0
@@ -1253,3 +1277,4 @@ _nop:
 
 section .bss
   file_buffer resb BUFFER_SIZE
+  result_fd resb 8
