@@ -5,7 +5,6 @@
 %define SYS_CLOSE 3
 %define STDOUT 1
 %define BUFFER_SIZE 1
-extern	printf		; the C function, to be called
 ;#################################################################################################################################
 %macro limpiar_pantalla 2 	;recibe 2 parametros
 	mov rax,1	;sys_write
@@ -131,49 +130,49 @@ imprimir_Rd:
 	jmp _exit
 
 Rd_v0:
-	impr_texto text_$v0,len_$v0
+	impr_texto text_Sv0,len_Sv0
 	jmp imprimir_Rs
 Rd_v1:
-	impr_texto text_$v1,len_$v1
+	impr_texto text_Sv1,len_Sv1
 	jmp imprimir_Rs
 Rd_a0:
-	impr_texto text_$a0,len_$a0
+	impr_texto text_Sa0,len_Sa0
 	jmp imprimir_Rs
 Rd_a1:
-	impr_texto text_$a1,len_$a1
+	impr_texto text_Sa1,len_Sa1
 	jmp imprimir_Rs
 Rd_a2:
-	impr_texto text_$a2,len_$a2
+	impr_texto text_Sa2,len_Sa2
 	jmp imprimir_Rs
 Rd_a3:
-	impr_texto text_$a3,len_$a3
+	impr_texto text_Sa3,len_Sa3
 	jmp imprimir_Rs	
 Rd_s0:
-	impr_texto text_$s0,len_$s0
+	impr_texto text_Ss0,len_Ss0
 	jmp imprimir_Rs
 Rd_s1:
-	impr_texto text_$s1,len_$s1
+	impr_texto text_Ss1,len_Ss1
 	jmp imprimir_Rs
 Rd_s2:
-	impr_texto text_$s2,len_$s2
+	impr_texto text_Ss2,len_Ss2
 	jmp imprimir_Rs
 Rd_s3:
-	impr_texto text_$s3,len_$s3
+	impr_texto text_Ss3,len_Ss3
 	jmp imprimir_Rs
 Rd_s4:
-	impr_texto text_$s4,len_$s4
+	impr_texto text_Ss4,len_Ss4
 	jmp imprimir_Rs
 Rd_s5:
-	impr_texto text_$s5,len_$s5
+	impr_texto text_Ss5,len_Ss5
 	jmp imprimir_Rs
 Rd_s6:
-	impr_texto text_$s6,len_$s6
+	impr_texto text_Ss6,len_Ss6
 	jmp imprimir_Rs
 Rd_s7:
-	impr_texto text_$s7,len_$s7
+	impr_texto text_Ss7,len_Ss7
 	jmp imprimir_Rs
 Rd_sp:
-	impr_texto text_$sp,len_$sp
+	impr_texto text_Ssp,len_Ssp
 	jmp imprimir_Rs	
 
 	;#################seccion de compracion de Rs
@@ -221,49 +220,49 @@ siguiente_Rs:
 	
 	
 Rs_v0:
-	impr_texto text_$v0,len_$v0
+	impr_texto text_Sv0,len_Sv0
 	jmp siguiente_Rs
 Rs_v1:
-	impr_texto text_$v1,len_$v1
+	impr_texto text_Sv1,len_Sv1
 	jmp siguiente_Rs
 Rs_a0:
-	impr_texto text_$a0,len_$a0
+	impr_texto text_Sa0,len_Sa0
 	jmp siguiente_Rs
 Rs_a1:
-	impr_texto text_$a1,len_$a1
+	impr_texto text_Sa1,len_Sa1
 	jmp siguiente_Rs
 Rs_a2:
-	impr_texto text_$a2,len_$a2
+	impr_texto text_Sa2,len_Sa2
 	jmp siguiente_Rs
 Rs_a3:
-	impr_texto text_$a3,len_$a3
+	impr_texto text_Sa3,len_Sa3
 	jmp siguiente_Rs
 Rs_s0:
-	impr_texto text_$s0,len_$s0
+	impr_texto text_Ss0,len_Ss0
 	jmp siguiente_Rs
 Rs_s1:
-	impr_texto text_$s1,len_$s1
+	impr_texto text_Ss1,len_Ss1
 	jmp siguiente_Rs
 Rs_s2:
-	impr_texto text_$s2,len_$s2
+	impr_texto text_Ss2,len_Ss2
 	jmp siguiente_Rs
 Rs_s3:
-	impr_texto text_$s3,len_$s3
+	impr_texto text_Ss3,len_Ss3
 	jmp siguiente_Rs
 Rs_s4:
-	impr_texto text_$s4,len_$s4
+	impr_texto text_Ss4,len_Ss4
 	jmp siguiente_Rs
 Rs_s5:
-	impr_texto text_$s5,len_$s5
+	impr_texto text_Ss5,len_Ss5
 	jmp siguiente_Rs
 Rs_s6:
-	impr_texto text_$s6,len_$s6
+	impr_texto text_Ss6,len_Ss6
 	jmp siguiente_Rs
 Rs_s7:
-	impr_texto text_$s7,len_$s7
+	impr_texto text_Ss7,len_Ss7
 	jmp siguiente_Rs
 Rs_sp:
-	impr_texto text_$sp,len_$sp
+	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rs
 
 	;#################seccion de compracion de Rt
@@ -311,49 +310,49 @@ siguiente_Rt:
 	
 	
 Rt_v0:
-	impr_texto text_$v0,len_$v0
+	impr_texto text_Sv0,len_Sv0
 	jmp siguiente_Rt
 Rt_v1:
-	impr_texto text_$v1,len_$v1
+	impr_texto text_Sv1,len_Sv1
 	jmp siguiente_Rt
 Rt_a0:
-	impr_texto text_$a0,len_$a0
+	impr_texto text_Sa0,len_Sa0
 	jmp siguiente_Rt
 Rt_a1:
-	impr_texto text_$a1,len_$a1
+	impr_texto text_Sa1,len_Sa1
 	jmp siguiente_Rt
 Rt_a2:
-	impr_texto text_$a2,len_$a2
+	impr_texto text_Sa2,len_Sa2
 	jmp siguiente_Rt
 Rt_a3:
-	impr_texto text_$a3,len_$a3
+	impr_texto text_Sa3,len_Sa3
 	jmp siguiente_Rt
 Rt_s0:
-	impr_texto text_$s0,len_$s0
+	impr_texto text_Ss0,len_Ss0
 	jmp siguiente_Rt
 Rt_s1:
-	impr_texto text_$s1,len_$s1
+	impr_texto text_Ss1,len_Ss1
 	jmp siguiente_Rt
 Rt_s2:
-	impr_texto text_$s2,len_$s2
+	impr_texto text_Ss2,len_Ss2
 	jmp siguiente_Rt
 Rt_s3:
-	impr_texto text_$s3,len_$s3
+	impr_texto text_Ss3,len_Ss3
 	jmp siguiente_Rt
 Rt_s4:
-	impr_texto text_$s4,len_$s4
+	impr_texto text_Ss4,len_Ss4
 	jmp siguiente_Rt
 Rt_s5:
-	impr_texto text_$s5,len_$s5
+	impr_texto text_Ss5,len_Ss5
 	jmp siguiente_Rt
 Rt_s6:
-	impr_texto text_$s6,len_$s6
+	impr_texto text_Ss6,len_Ss6
 	jmp siguiente_Rt
 Rt_s7:
-	impr_texto text_$s7,len_$s7
+	impr_texto text_Ss7,len_Ss7
 	jmp siguiente_Rt
 Rt_sp:
-	impr_texto text_$sp,len_$sp
+	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rt
 	
 ;################## Seccion de imprimir Immediato
@@ -376,7 +375,7 @@ termina:
 	ret
 	
 impr_add:
-	impr_texto text_$numero,len_$numero
+	impr_texto text_Snumero,len_Snumero
 	impr_numero r8
 	impr_registro [r9]
 	impr_texto text_salto,len_salto
@@ -498,53 +497,53 @@ len_Mult: equ $-text_Mult
 text_enter: db ''
 
 ;################## seccion de imprimir registros MIPS
-text_$s0: db '$s0 '
-len_$s0: equ $-text_$s0
+text_Ss0: db '$s0 '
+len_Ss0: equ $-text_Ss0
 
-text_$s1: db '$s1 '
-len_$s1: equ $-text_$s1
+text_Ss1: db '$s1 '
+len_Ss1: equ $-text_Ss1
 
-text_$s2: db '$s2 '
-len_$s2: equ $-text_$s2
+text_Ss2: db '$s2 '
+len_Ss2: equ $-text_Ss2
 
-text_$s3: db '$s3 '
-len_$s3: equ $-text_$s3
+text_Ss3: db '$s3 '
+len_Ss3: equ $-text_Ss3
 
-text_$s4: db '$s4 '
-len_$s4: equ $-text_$s4
+text_Ss4: db '$s4 '
+len_Ss4: equ $-text_Ss4
 
-text_$s5: db '$s5 '
-len_$s5: equ $-text_$s5
+text_Ss5: db '$s5 '
+len_Ss5: equ $-text_Ss5
 
-text_$s6: db '$s6 '
-len_$s6: equ $-text_$s6
+text_Ss6: db '$s6 '
+len_Ss6: equ $-text_Ss6
 
-text_$s7: db '$s7 '
-len_$s7: equ $-text_$s7
+text_Ss7: db '$s7 '
+len_Ss7: equ $-text_Ss7
 
-text_$sp: db '$sp '
-len_$sp: equ $-text_$sp
+text_Ssp: db '$sp '
+len_Ssp: equ $-text_Ssp
 
-text_$a0: db '$a0 '
-len_$a0: equ $-text_$a0
+text_Sa0: db '$a0 '
+len_Sa0: equ $-text_Sa0
 
-text_$a1: db '$a1 '
-len_$a1: equ $-text_$a1
+text_Sa1: db '$a1 '
+len_Sa1: equ $-text_Sa1
 
-text_$a2: db '$a2 '
-len_$a2: equ $-text_$a2
+text_Sa2: db '$a2 '
+len_Sa2: equ $-text_Sa2
 
-text_$a3: db '$a3 '
-len_$a3: equ $-text_$a3
+text_Sa3: db '$a3 '
+len_Sa3: equ $-text_Sa3
 
-text_$v0: db '$v0 '
-len_$v0: equ $-text_$v0
+text_Sv0: db '$v0 '
+len_Sv0: equ $-text_Sv0
 
-text_$v1: db '$v1 '
-len_$v1: equ $-text_$v1
+text_Sv1: db '$v1 '
+len_Sv1: equ $-text_Sv1
 
-text_$numero: db '$'
-len_$numero: equ $-text_$numero
+text_Snumero: db '$'
+len_Snumero: equ $-text_Snumero
 
 text_salto: db '.',0xa
 len_salto: equ $-text_salto
