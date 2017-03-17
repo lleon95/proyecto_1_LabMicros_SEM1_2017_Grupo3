@@ -1,0 +1,19 @@
+%include "io64.inc"
+
+section .text
+global CMAIN
+CMAIN:
+    mov rbp, rsp; for correct debugging
+    
+	mov r14,28
+        mov r10,1
+	mov rcx,r14
+	shl r10, cl ;corrimiento a la izquierda
+	;mov [r8],r10d ;write back
+            jmp _fetch
+            
+  _fetch:
+  mov rax,60						; Salir del sistema sys_exit
+	mov rdi,0
+	syscall
+      
