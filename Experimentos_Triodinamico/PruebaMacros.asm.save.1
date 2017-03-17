@@ -85,14 +85,14 @@
     add r8,48
     add r9,48
     jmp %%end
-    
+
   %%sumar8:
     add r8,7
     jmp %%ret1
   %%sumar9:
     add r9,7
-    jmp %%ret2  
-   
+    jmp %%ret2
+
   %%end:
 %endmacro
 
@@ -123,7 +123,7 @@ jne %%impr_r9
 	sub r8,10
 	add r9,1
 	jmp %%_resta
-%%fin:	
+%%fin:
 %endmacro
 
 %macro carga 1
@@ -165,7 +165,7 @@ imprimir_Rd:
 	cmp r12,23
 	je Rd_s7
 	cmp r12,29
-	je Rd_sp   
+	je Rd_sp
         impr_texto text_error_Rd, len_error_Rd
 	jmp _exit
 
@@ -213,7 +213,7 @@ Rd_s7:
 	jmp siguiente_Rd
 Rd_sp:
 	impr_texto text_Ssp,len_Ssp
-	jmp siguiente_Rd	
+	jmp siguiente_Rd
 
 siguiente_Rd:
         cmp r9,0
@@ -223,7 +223,7 @@ siguiente_Rd:
         jmp imprimir_Rs
 	;#################seccion de compracion de Rs
 imprimir_Rs:
-        mov r11,rbx    
+        mov r11,rbx
          cmp r11,0
         je Rs_zero
 	cmp r11,2
@@ -267,7 +267,7 @@ siguiente_Rs:
 	cmp r8,5
 	je imprimir_Rt
 	jmp imprimir_Imm
-	
+
 Rs_zero:
 	impr_texto text_Szero,len_Szero
 	jmp siguiente_Rs
@@ -418,22 +418,16 @@ Rt_s7:
 Rt_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rt
-	
+
 ;################## Seccion de imprimir Immediato
-;inmediato:
 imprimir_Imm:
 	mov r8,r14
 	mov r13,r14
 	shr r8,8
 	impr_inmediato r8 ;macro de inmediato
 	and r13,0xff
-	impr_inmediato r13	
-;	ret
+	impr_inmediato r13
         jmp termina
-
-;imprimir_Imm:
-;    call inmediato
-;	jmp termina
 
 ;################## Seccion de llamadas a variables
 siguiente_variable:
@@ -477,7 +471,6 @@ section	.data
   file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
-
   ; ### Parte B - Mensaje de error FILENOTFOUND ###
   const_filenotfound_txt: db 'Archivo ROM.txt no encontrado', 0xa
   const_filenotfound_size: equ $-const_filenotfound_txt
@@ -485,10 +478,10 @@ section	.data
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
   ; ### Parte C - Mensaje de error - Overflow de instrucciones ###
-  const_instoverflow_txt: db 'Error: Existen más instrucciones de las permitidas (150) o hay una instrucción no válida', 0xa
+  const_instoverflow_txt: db 'ERROR! Existen más instrucciones de las permitidas (150) o hay una instrucción no válida', 0xa
   const_instoverflow_size: equ $-const_instoverflow_txt
-  ; ### Parte D - Mensaje para continuar con la ejecuciones
-  const_continuar_txt: db 'Presione la tecla enter para continuar con la ejecucion del archivo ROM.txt',0xa
+  ; ### Parte D - Mensaje de Continuar ###
+  const_continuar_txt: db 'Presiona la tecla enter para continuar',0xa
   const_continuar_size: equ $-const_continuar_txt
 
   ; ### Parte Fetch ###
@@ -497,8 +490,8 @@ section	.data
   ;stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
   registers TIMES 64 dd 0        ; Cargar los registros del microprocesador
   ;temp dq 0
-  
-  
+
+
 ;###############################################################################################################################################reciente
 fmt:    db "%ld "	; The printf format
 
@@ -581,11 +574,7 @@ len_Subu: equ $-text_Subu
 text_Mult: db 'Mult '
 len_Mult: equ $-text_Mult
 
-;text_enter: db ''
-
-;################## seccion de imprimir registros MIPS
-;text_parche: db 'NO PREGUNTEN, ASI FUNCIONA'
-;len_parche: equ $-text_parche
+;################## Seccion de imprimir registros MIPS
 
 text_Ss0: db '$s0 '
 len_Ss0: equ $-text_Ss0
@@ -641,7 +630,7 @@ len_Snumero: equ $-text_Snumero
 text_salto: db '.',0xa
 len_salto: equ $-text_salto
 
-;Textos para identificacion de errores
+;####### Seccion de textos para identificacion de errores ########
 text_error_Rs: db 'ERROR! Registro Rs invalido.',0xa
 len_error_Rs: equ $-text_error_Rs
 
@@ -724,9 +713,9 @@ _fileread:
   mov rdi, STDOUT
   mov rsi, file_buffer
   syscall
-  
+
   ; Nuevo código DEBUG
-  
+
   ; ## Filtrado de datos
   cmp r8, 32    ; Ver si es espacio
   je _fileread
@@ -746,8 +735,7 @@ _fileread:
   jle _hexmay
   cmp r8, 102 ; Ver si es hexa minúscula
   jle _hexmin
-  
-  
+
   ; ## Caracteres numéricos
   _numerico:
     sub r8, 48
@@ -759,7 +747,7 @@ _fileread:
   _hexmin:
     sub r8, 87 ; 97 start + 10
     jmp _append
-  
+
   ; ## Operaciones especiales
   _startAddress:
     mov r9, 1   ; Encender centinela
@@ -782,7 +770,7 @@ _fileread:
   _activarComentario:
     mov r9, 2   ; Activar comentario
     jmp _fileread
-  
+
   ; Escritura en el STACK
   ; 0H - 0040 0000H (Reserved)
   ; 0040 0000H - 1000 0000 (Program)
@@ -791,7 +779,7 @@ _fileread:
   ; Instrucciones 150
   ; Memoria de Datos 100
   ; Stack 100
-  
+
   _writeMem:
     ; Tipo instruccion
     mov r8d, r14d   ; Crear un contenido de direccion auxiliar
@@ -801,7 +789,7 @@ _fileread:
     cmp r8d, 0x1000 ; Ver si son datos
     je _writeDynamic
     jmp _instoverflow       ; DEBUG
-    
+
   _writeInstruction:
     mov r8, 0
     mov r8w, r14w   ; Copiar los primeros 16 bits  - Recordar eliminar la parte alta de la palabra
@@ -811,7 +799,7 @@ _fileread:
     mov r15, 0
     mov r9, 0       ; Restore modo captura
     jmp _fileread
-  
+
   _writeDynamic:
     mov r8, 0
     mov r8w, r14w   ; Copiar los primeros 16 bits de direccion - Recordar eliminar la parte alta de la palabra
@@ -821,8 +809,7 @@ _fileread:
     mov r14, 0
     mov r15, 0
     jmp _fileread
-  
-  
+
   jmp _fileread
 
 
@@ -832,7 +819,7 @@ _startPC:
     mov rdi,resulttxt
     mov rsi,(2000o+1000o+100o+2o)
     mov rdx,(700o+40o+4o)
-    syscall	
+    syscall
     mov [result_fd],rax
 
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
@@ -936,13 +923,11 @@ _FormatoJ:
 
 _filefound:
   ; ### Parte A - Mensaje de info - FileFound ###
+  impr_shell const_filefound_txt, const_filefound_size
   mov rax,1						             ;Colocar en modo sys_write
   mov rdi,1					               ;Colocar en consola
-  mov rsi,const_filefound_txt		 ;Cargar el mensaje
-  mov rdx,const_filefound_size	 ;Tamaño del mensaje
-  syscall
+  mov rsi,const_filefound_txt		 ;Cargar 
   mov r9,0
-  impr_shell const_continuar_txt, const_continuar_size
   tecla_get text_enter
   jmp _fileread
 
@@ -953,7 +938,6 @@ _filenotfound:
   mov rsi,const_filenotfound_txt		 ;Cargar el mensaje
   mov rdx,const_filenotfound_size	 ;Tamaño del mensaje
   syscall
-  impr_shell const_continuar_txt, const_continuar_size
   tecla_get text_enter
   jmp _exit
 
