@@ -862,8 +862,6 @@ _fileread:
   mov rsi, file_buffer
   syscall
   
-  ; Nuevo código DEBUG
-  
   ; ## Filtrado de datos
   cmp r8, 32    ; Ver si es espacio
   je _fileread
@@ -883,8 +881,7 @@ _fileread:
   jle _hexmay
   cmp r8, 102 ; Ver si es hexa minúscula
   jle _hexmin
-  
-  
+    
   ; ## Caracteres numéricos
   _numerico:
     sub r8, 48
@@ -958,10 +955,8 @@ _fileread:
     mov r14, 0
     mov r15, 0
     jmp _fileread
-  
-  
-  jmp _fileread
-
+    
+  jmp _fileread ;############ OJOOOOOOOOOOOOOOOOOOOOOO
 
 _startPC:
 	;## abrir el archivo de resultados
@@ -973,50 +968,42 @@ _startPC:
     mov [result_fd],rax
 
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
-  mov r14, r15                ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
-  mov r15, 0x400000           ; Colocar el PC Counter en su posicion inicial
+  mov r14, r15       ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
+  mov r15, 0x400000   ; Colocar el PC Counter en su posicion inicial
 
 ;############################################################################---------------------------Seccion .text de Javi--------------------#############################################
- push    rbp         ;Empujar rbp al stack
-    mov     rbp, rsp    ;Asignar la direccion de rsp al rbp
-    
-    cmp     dword[rbp + 8], 1   ;Revisar si hay argumentos
-    je      NoArgs              
-     
-    
-    mov     rbx, [rbp + 24]     ;Mover la direccion de los argumentos a los registros de resultados
-    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
-    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
-    mov rbx,r10
-    carga 4
-	mov [r14],rbx
+ push rbp ;Empujar rbp al stack
+ mov rbp, rsp  ;Asignar la direccion de rsp al rbp
+ cmp dword[rbp + 8], 1 ;Revisar si hay argumentos
+ je NoArgs              
+         
+ mov rbx, [rbp + 24] ;Mover la direccion de los argumentos a los registros de resultados
+ mov rbx, [rbx] ;Mover el contenido de los argumentos a los resgistros de resultados
+ htb rbx ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+ mov rbx,r10
+ carga 4
+ mov [r14],rbx
+ mov rbx, [rbp + 32] ;Mover la direccion de los argumentos a los registros de resultados
+ mov rbx, [rbx] ;Mover el contenido de los argumentos a los resgistros de resultados
+ htb rbx ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+ mov rbx,r10
+ carga 5
+ mov [r14],rbx
+ mov rbx, [rbp + 40] ;Mover la direccion de los argumentos a los registros de resultados
+ mov rbx, [rbx] ;Mover el contenido de los argumentos a los resgistros de resultados
+ htb rbx ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+ mov rbx,r10
+ carga 6
+ mov [r14],rbx
+ mov rbx, [rbp + 48] ;Mover la direccion de los argumentos a los registros de resultados
+ mov rbx, [rbx] ;Mover el contenido de los argumentos a los resgistros de resultados
+ htb rbx ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+ mov rbx,r10
+ carga 7
+ mov [r14],rbx
+ jmp Exit_Javi
 
-	mov     rbx, [rbp + 32]     ;Mover la direccion de los argumentos a los registros de resultados
-    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
-    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
-    mov rbx,r10
-    carga 5
-	mov [r14],rbx
-
-	mov     rbx, [rbp + 40]     ;Mover la direccion de los argumentos a los registros de resultados
-    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
-    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
-    mov rbx,r10
-    carga 6
-	mov [r14],rbx
-
-	mov     rbx, [rbp + 48]     ;Mover la direccion de los argumentos a los registros de resultados
-    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
-    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
-    mov rbx,r10
-    carga 7
-	mov [r14],rbx
-	
-
-    
-    jmp Exit_Javi
-
-NoArgs:                     ;Si no hay argumentos, poner registros en 0
+NoArgs:	;Si no hay argumentos, poner registros en 0
    mov rbx, 0
    carga 4
    mov [r14],rbx
@@ -1026,17 +1013,16 @@ NoArgs:                     ;Si no hay argumentos, poner registros en 0
    mov [r14],rbx
    carga 7
    mov [r14],rbx	
-   jmp     Exit_Javi
-
+   jmp Exit_Javi
 
 Exit_Javi:
-    mov     rsp, rbp        ;Sacar rbp del stack
-    pop     rbp
+    mov rsp, rbp        ;Sacar rbp del stack
+    pop rbp
 ;############################################################################---------------------------Finaliza .text de Javi-------------------#############################################
 
-	impr_shell const_continuar_txt, const_continuar_size
-  	tecla_get text_enter
-	limpiar_pantalla limpiar,limpiar_tam
+impr_shell const_continuar_txt, const_continuar_size
+tecla_get text_enter
+limpiar_pantalla limpiar,limpiar_tam
 
 _fetch:
   ; ### Parte 10 - Decodificar el PC en memoria de instrucciones: Pasar de 400004 a 1 ###
@@ -1147,14 +1133,9 @@ _filenotfound:
 
 _instoverflow:
   ; ### Parte C - Mensaje de instrucciones overflow ###
-  mov rax,1						             ;Colocar en modo sys_write
-  mov rdi,1					               ;Colocar en consola
-  mov rsi,const_instoverflow_txt		 ;Cargar el mensaje
-  mov rdx,const_instoverflow_size	 ;Tamaño del mensaje
-  syscall
+  impr_shell const_instoverflow_txt, const_instoverflow_size
   jmp Pantalla_salida_error
-
-
+  
 ;######################################################################
 ;######################################################################
 ;######################################################################
@@ -1225,7 +1206,6 @@ llamadas_tipo_I: ;llamada para carga de registros cuando Rt es destino
 ;###################---------Seccion de Control de la Ejecucion (Identificacion de instrucciones)----------##############
 _decode:
         ;mov r14,r11
-
 ; Identificacion del OPcode para las instrucciones MIPS 
 
 	cmp r8,0 ;Identifica instrucciones tipo R (OPcode = 0)
@@ -1252,10 +1232,7 @@ _decode:
 	je ins_Sltiu
 	cmp r8,0xf
 	je ins_Lui ;identifica Lui
-
-;Notificacion de error, causa de un OPcode invalido
-
-        impr_texto text_error_OPCode, len_error_OPCode 
+        impr_texto text_error_OPCode, len_error_OPCode ;Notificacion de error, causa de un OPcode invalido
         impr_registro r15
         jmp Pantalla_salida_error
 	
@@ -1286,10 +1263,7 @@ function_R: ; Identifica el function de las instrucciones tipo R
 	je ins_Subu
 	cmp r9,0x18 ;identifica Mult
 	je ins_Mult
-	
-;Notificacion de error, causa de function invalido
-	
-        impr_texto text_error_Function, len_error_Function
+	Impr_texto text_error_Function, len_error_Function ;Notificacion de error, causa de function invalido
         impr_registro r15
         jmp Pantalla_salida_error
 
@@ -1319,7 +1293,6 @@ ins_Add: ;Ejecucion de intruccion Add
         ins_Add_resnegativo:
             cmp eax, 0 ;Verificacion de overflow
             jge overflow            
-  
         ins_Add_ret: 
             mov [r8], eax; write back
 	jmp imprimir_all ;Impresion de valores de registros MIPS
@@ -1472,7 +1445,7 @@ multiplicacion: ;Ejecucion de la multiplicacion
       cmp r11,r10 ;verifica que el contador es igual al valor del registro temporal
       jl multiplicacion ; si el contador es menor regresa a multiplicacion
        jmp finmult ; si el contador es igual, guardar el resultado de la multiplicacion en dos registros
-;####################################Funcionamiento de instrucciones tipo I
+;####################################----Funcionamiento de instrucciones tipo I------###########################################
 
 ins_Addi:
 	impr_texto text_Addi,len_Addi ;Impresion de nombre de la instruccion
@@ -1503,7 +1476,6 @@ ins_Addi:
         ins_Addi_ret: 
             mov [r8], eax; write back
 	    jmp imprimir_all ;Impresion de valores de registros MIPS 
-
 
 ins_Andi:
 	impr_texto text_Andi,len_Andi ;Impresion de nombre de la instruccion
@@ -1576,7 +1548,6 @@ JumpAddress:
 	mov r15,r14 ;modificacion del PC con el JumpAddress
 	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
-
 ins_Lui:
 	impr_texto text_Lui,len_Lui ;impresion del nombre de la instruccion
 	impr_numero r12 ;impresion de inmediato
@@ -1600,7 +1571,6 @@ ins_Lw:
  	mov [r8],r10d ;write back
 	jmp imprimir_all ;Impresion de valores de registros MIPS 
 	
-
 ins_Ori:
 	impr_texto text_Ori,len_Ori ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
@@ -1691,8 +1661,7 @@ tag1:
 	cmp r13,10
 	jl tag1 ;Impresion del registro 2-9
 	carga 16 ;Se mueve el puntero del stack registers al registro 16
-tag2:
-           
+tag2:           
 	call impr_add
 	cmp r13,24
 	jl tag2 ; Impresion del registro 16-23
@@ -1712,8 +1681,7 @@ Pantalla_salida_error:
         impr_texto text_Leon,len_Leon
         impr_texto text_Danny,len_Danny
         impr_texto text_Keylor,len_Keylor
-        impr_texto text_Merayo,len_Merayo
-        
+        impr_texto text_Merayo,len_Merayo        
         jmp micro_info
 
 ;###########################--------------Pantalla de Salida al finalizar Ejecucion exitosamente--------------------##################
@@ -1725,13 +1693,12 @@ Pantalla_salida_exitosa:
         impr_texto text_Danny,len_Danny
         impr_texto text_Keylor,len_Keylor
         impr_texto text_Merayo,len_Merayo
-
         jmp micro_info
-
-
+	
+;############################## DATOS DEL MICRO ##############################
 micro_info:
 
-	;####################### FABRICANTE ########################
+;####################### FABRICANTE ########################
 
 mov eax,0
 cpuid  ; obtener id del fabricante
@@ -1747,8 +1714,6 @@ impr_texto newline,1
 impr_texto const_fabricante_txt,const_fabricante_size
 impr_texto fabricante,12
 impr_texto newline,1
-
-
 
 ;####################### MODELO ############################
 
@@ -1771,8 +1736,6 @@ impr_texto const_modelo_txt, const_modelo_size
 impr_texto modelo,2
 impr_texto newline,1
 
-
-
 ;####################### FAMILIA ############################
 
 mov eax,1
@@ -1793,9 +1756,6 @@ mov [familia+1],r8
 impr_texto const_familia_txt, const_familia_size
 impr_texto familia,2
 impr_texto newline,1
-
-
-
 
 ;####################### TIPO ############################
 
