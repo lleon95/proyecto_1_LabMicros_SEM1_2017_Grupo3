@@ -1507,12 +1507,12 @@ overflow:
 tag3:
 	call impr_add
 	cmp r13,10
-	jl tag3 ;Impresion del registro 2-10
+	jl tag3 ;Impresion del registro 2-9
 	carga 16 ;Se mueve el puntero del stack registers al registro 16
 tag4:
 	call impr_add
 	cmp r13,24
-	jl tag4 ; Impresion del registro 16-24
+	jl tag4 ; Impresion del registro 16-23
 	carga 29 ;Se mueve el puntero del stack registers al registro 29
 	call impr_add ;Impresion del registro 29
 	carga 31 ;Se mueve el puntero del stack registers al registro 31
@@ -1529,13 +1529,13 @@ tag1:
 
 	call impr_add
 	cmp r13,10
-	jl tag1 ;Impresion del registro 2-10
+	jl tag1 ;Impresion del registro 2-9
 	carga 16 ;Se mueve el puntero del stack registers al registro 16
 tag2:
            
 	call impr_add
 	cmp r13,24
-	jl tag2 ; Impresion del registro 16-24
+	jl tag2 ; Impresion del registro 16-23
 	carga 29 ;Se mueve el puntero del stack registers al registro 29
 	call impr_add ;Impresion del registro 29
 	carga 31 ;Se mueve el puntero del stack registers al registro 31
