@@ -5,7 +5,8 @@
 %define SYS_CLOSE 3
 %define STDOUT 1
 %define BUFFER_SIZE 1
-;#################################################################################################################################
+
+;################################################-----MACROS-----############################################################
 %macro limpiar_pantalla 2 	;recibe 2 parametros
 	mov rax,1	;sys_write
 	mov rdi,1	;std_out
@@ -38,91 +39,91 @@
 %endmacro
 
 %macro tecla_get 1 
-	mov rax,0
-	mov rdi,0
-	mov rsi,%1
-	mov rdx,1
+	mov rax,0	;sys_read
+	mov rdi,0	; 
+	mov rsi,%1	;primer parámetro: Texto(enter)
+	mov rdx,1	;segundo parámetro: Tamano texto
 	syscall
 %endmacro
 
-%macro impr_registro 1
-        mov r12,%1
-	mov r8,r12
-	shr r8,24
-	impr_inmediato r8
-	mov r8,r12
-	shr r8,16
-	and r8,0xff
-	impr_inmediato r8
-	mov r8,r12
-	shr r8,8
-	and r8,0xff
-	impr_inmediato r8
-	mov r8,%1	
-	and r8,0xff
-	impr_inmediato r8
-
-%endmacro
-
-%macro impr_inmediato 1
-	impr_numero %1
-	mov [modelo],r9
-	mov [modelo+1],r8
-	impr_texto modelo,2
-%endmacro
-
-%macro impr_numero 1
-    mov r8, %1
-    mov r9,r8
-    and r8,0xf
-    shr r9,4
-    cmp r8,10
-    jge %%sumar8
+%macro impr_numero 1  ;prepara un numero de 2 bytes en hexadecimal para ser impresos en ascii
+    mov r8, %1     ;carga el dato de entrada en un registro
+    mov r9,r8	;copia el dato entrante en otro registro
+    and r8,0xf	;toma los bits mas bajos de dato entrante
+    shr r9,4	;toma los bits mas altos del dato que entro
+    cmp r8,10	;compara si el dato es mayor a 10
+    jge %%sumar8 ;si el dato es mayor a 10 hay que sumarle 7 para poder imprimir letras
  %%ret1:
-    cmp r9,10
-    jge %%sumar9
+    cmp r9,10	;compara si la parte alta del dato es mayor a 10
+    jge %%sumar9 ;si la parte alta del dato es mayor a 10 hay que sumarle 7 para poder imprimir letras
  %%ret2:
-    add r8,48
-    add r9,48
-    jmp %%end
+    add r8,48 ;convierte la parte baja del dato de entrada en ascii
+    add r9,48 ;convierte la parte alta del dato de entrada en ascii
+    jmp %%end ;termina el macro
     
   %%sumar8:
-    add r8,7
+    add r8,7  ;suma 7 para poder imprimir una letra
     jmp %%ret1
   %%sumar9:
-    add r9,7
+    add r9,7  ;suma 7 para poder imprimir una letra
     jmp %%ret2  
    
   %%end:
 %endmacro
 
-%macro impr_decimal 1
-	mov r8,%1
-	mov r9,0
-;impr_texto text_Sv0,len_Sv0
+%macro impr_inmediato 1 ;imprime el dato que entra en ascii, imprime solo datos de 8 bits
+	impr_numero %1 ;prepara el dato y lo separa en su parte alta y baja transformada en ascii
+	mov [modelo],r9 ;copia la parte alta en un arreglo
+	mov [modelo+1],r8 ;copia la parte baja en un arreglo 
+	impr_texto modelo,2 ;imprime el arreglo
+%endmacro
+
+%macro impr_registro 1 ;este macro puede imprimir datos de 32 bits
+        mov r12,%1  ;carga el dato de entrada en un registro
+	mov r8,r12  ;copia el dato de entrada en un registro
+	shr r8,24   ;toma la parte alta del registro de 32 bits
+	impr_inmediato r8 ;imprime los 8 bits mas  altos del dato que ingresa
+	mov r8,r12  ;copia el dato de entrada en un registro
+	shr r8,16   ;toma la segunda mitad del dato de entrada
+	and r8,0xff ;toma 8 bits del dato de entrada, de 16 al 23
+	impr_inmediato r8 ;imprime los 8 bits del dato de entada, del 16 al 23 
+	mov r8,r12  ;copia el dato de entrada en un registro
+	shr r8,8    ;toma los bits del 8 al 31 del dato de entrada
+	and r8,0xff ;deja solo los bits de 8 al 15 del dato de entrada
+	impr_inmediato r8 ;imprime los 8 bits del dato de entada, del 8 al 15
+	mov r8,%1  ;copia el dato de entrada en un registro
+	and r8,0xff ;toma los 8 bits mas bajos del dato de entrada
+	impr_inmediato r8 ;imprime los 8 bits mas bajos del dato de entrada
+
+%endmacro
+
+
+%macro impr_decimal 1 ;imprime el dato de entrada en decimal, solo puede imprimir del 0 al 99
+	mov r8,%1  ;copia el dato de entrada en un registro
+	mov r9,0   ;inicializa en cero un registro
 %%_resta:
-	cmp r8,10
-	jge %%dism10
-cmp r9,0
-jne %%impr_r9
+	cmp r8,10  ;comprueba si el dato es menor que 10
+	jge %%dism10 ;si el dato es mayor que 10 se le resta una decena
+cmp r9,0  ;comprueba si hay que imprimir la decena
+jne %%impr_r9  ;imprime la decena
 
 %%impr_r8:
-	add r8,48
-        mov [modelo],r8
-	impr_texto modelo,1
-        jmp %%fin
+	add r8,48 ;convierte el dato en ascii
+        mov [modelo],r8 ;carga el dato convertido en ascii en un arreglo
+	impr_texto modelo,1  ;imprime la unidad del dato de entrada
+        jmp %%fin ;termina el macro
 
 
 %%impr_r9:
-	add r9,48
-        mov [modelo],r9
-	impr_texto modelo,1
-	jmp %%impr_r8
+	add r9,48 ;convierte el dato en ascii
+        mov [modelo],r9 ;carga el dato convertido en ascii en un arreglo
+	impr_texto modelo,1  ;imprime la decena del dato de entrada
+	jmp %%impr_r8 ;despues de imprimir la decena procede a imprimir la unidad
 
 %%dism10:
-	sub r8,10
-	add r9,1
-	jmp %%_resta
+	sub r8,10  ;resta una decena al dato que entra
+	add r9,1   ;aumenta en una unidad el dato contador de decena
+	jmp %%_resta ;vuelve al ciclo para comprobar si el dato el mayor que 10
 %%fin:	
 %endmacro
 
