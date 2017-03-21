@@ -135,8 +135,20 @@ jne %%impr_r9  ;imprime la decena
 	add r14,r10
 %endmacro
 
+;##################-----------Seccion para imprimir registros de la instruccion, según formato---------------##########################
+;En esta subrutina, se decribe la lógica para la impresión de las intrucciones decodificadas en la consola, esta dependerá del formato
+;de la instrución en la mayoría de casos, tambien de su código de operación y la funcion. 
+siguiente_variable:
+	cmp r8,0 ;Si la instruccion es tipo R, siempre se imprime el registro destino primero
+	je imprimir_Rd
+	cmp r8,4 ;Si la instruccion es una bifurcacion, imprime primero el registro fuente
+	je imprimir_Rs
+	cmp r8,5 ;Si la instruccion es una bifurcacion, imprime primero el registro fuente
+	je imprimir_Rs
+	jmp imprimir_Rt ; El resto de las instrucciones imprimen de primero el registro temporal, excepto los tipo J, que no entran a esta subrutina
+	
 ;#################--------Seccion de comparacion de Rd-------------------#########################
-imprimir_Rd: ;Identificacion de registro destino, para impresion
+imprimir_Rd: ;Identificacion de registro destino, para impresion en consola
 	cmp r12,2
 	je Rd_v0
 	cmp r12,3
@@ -167,9 +179,10 @@ imprimir_Rd: ;Identificacion de registro destino, para impresion
 	je Rd_s7
 	cmp r12,29
 	je Rd_sp   
-    impr_texto text_error_Rd, len_error_Rd ;Si el registro en la instruccion no existe en el emulador, error
+    	impr_texto text_error_Rd, len_error_Rd ;Si el registro destino en la instruccion no existe en el emulador, error
 	jmp Pantalla_salida_error
 
+;##################----------------Impresion de registros destino en consola-----------##################
 Rd_v0:
 	impr_texto text_Sv0,len_Sv0
 	jmp siguiente_Rd
@@ -216,60 +229,52 @@ Rd_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rd	
 
-siguiente_Rd:
-        cmp r9,0
+siguiente_Rd: ;Identificacion de siguiente registro de impresion en consola
+        cmp r9,0 ;Si es un sll, la siguiente impresion es del registro temporal
         je imprimir_Rt
-        cmp r9,2
+        cmp r9,2 ;Si es un srl, la siguiente impresion es del registro temporal
         je imprimir_Rt
-        jmp imprimir_Rs
+        jmp imprimir_Rs ;El resto de instrucciones imprimen el registros fuente luego de la impresion del registro destino
 
-;#################seccion de compracion de Rs
-imprimir_Rs:
+;#################--------Seccion de comparacion de Rs-------------------#########################
+imprimir_Rs: ;Identificacion de registro fuente, para impresion en consola
     mov r11,rbx    
     cmp r11,0
     je Rs_zero
-	cmp r11,2
-	je Rs_v0
-	cmp r11,3d
-	je Rs_v1
-	cmp r11,4
-	je Rs_a0
-	cmp r11,5
-	je Rs_a1
-        cmp r11,6
-	je Rs_a2
-	cmp r11,7
-	je Rs_a3
-	cmp r11,16
-	je Rs_s0
-	cmp r11,17
-	je Rs_s1
-	cmp r11,18
-	je Rs_s2
-	cmp r11,19
-	je Rs_s3
-	cmp r11,20
-	je Rs_s4
-	cmp r11,21
-	je Rs_s5
-	cmp r11,22
-	je Rs_s6
-	cmp r11,23
-	je Rs_s7
-	cmp r11,29
-	je Rs_sp
-    impr_texto text_error_Rs, len_error_Rs
-	jmp Pantalla_salida_error
+    cmp r11,2
+    je Rs_v0
+    cmp r11,3d
+    je Rs_v1
+    cmp r11,4
+    je Rs_a0
+    cmp r11,5
+    je Rs_a1
+    cmp r11,6
+    je Rs_a2
+    cmp r11,7
+    je Rs_a3
+    cmp r11,16
+    je Rs_s0
+    cmp r11,17
+    je Rs_s1
+    cmp r11,18
+    je Rs_s2
+    cmp r11,19
+    je Rs_s3
+    cmp r11,20
+    je Rs_s4
+    cmp r11,21
+    je Rs_s5
+    cmp r11,22
+    je Rs_s6
+    cmp r11,23
+    je Rs_s7
+    cmp r11,29
+    je Rs_sp
+    impr_texto text_error_Rs, len_error_Rs ;Si el registro fuente en la instruccion no existe en el emulador, error
+    jmp Pantalla_salida_error
 
-siguiente_Rs:
-	cmp r8,0
-	je imprimir_Rt
-	cmp r8,4
-	je imprimir_Rt
-	cmp r8,5
-	je imprimir_Rt
-	jmp imprimir_Imm
-	
+;##################----------------Impresion de registros fuente en consola-----------##################
 Rs_zero:
 	impr_texto text_Szero,len_Szero
 	jmp siguiente_Rs
@@ -319,8 +324,17 @@ Rs_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rs
 
-	;#################seccion de compracion de Rt
-imprimir_Rt:
+siguiente_Rs: ;Identificacion de siguiente registro de impresion en consola
+	cmp r8,0 ;Si la instruccion ejecutada es tipo R, lo siguiente es imprimir el registro temporal
+	je imprimir_Rt
+	cmp r8,4 ;Si es un beq, la siguiente impresion es del registro temporal
+	je imprimir_Rt
+	cmp r8,5 ;Si es un bne, la siguiente impresion es del registro temporal
+	je imprimir_Rt
+	jmp imprimir_Imm ;El resto de instrucciones imprimen el inmediato luego de la impresion del registro fuente
+
+;#################--------Seccion de comparacion de Rt-------------------#########################
+imprimir_Rt: ;Identificacion de registro temporal, para impresion en consola
 	cmp r10,0
 	je Rt_zero
 	cmp r10,2
@@ -353,25 +367,10 @@ imprimir_Rt:
 	je Rt_s7
 	cmp r10,29
 	je Rt_sp
-    impr_texto text_error_Rt, len_error_Rt
+    	impr_texto text_error_Rt, len_error_Rt ;Si el registro temporal en la instruccion no existe en el emulador, error
 	jmp Pantalla_salida_error
 
-siguiente_Rt:
-        cmp r8,0
-	je Verif_R
-        	cmp r8,4
-	je imprimir_Imm
-	cmp r8,5
-	je imprimir_Imm
-	jmp imprimir_Rs
-
-Verif_R:
-        cmp r9,0
-	je imprimir_Imm
-	cmp r9,2
-	je imprimir_Imm
-        jmp termina
-
+;######################----------------Impresion de registros temporales en consola-----------##################
 Rt_zero:
 	impr_texto text_Szero, len_Szero
 	jmp siguiente_Rt
@@ -421,48 +420,52 @@ Rt_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rt
 	
-;################## Seccion de imprimir Immediato
-;inmediato:
+siguiente_Rt: ;Identificacion de siguiente registro de impresion en consola
+        cmp r8,0 ;Verifica si es una instruccion tipo R
+	je Verif_R
+        cmp r8,4 ;Si la instruccion es un beq, la siguiente impresion es el inmediato
+	je imprimir_Imm
+	cmp r8,5 ;Si la instruccion es un bne, la siguiente impresion es el inmediato
+	je imprimir_Imm
+	jmp imprimir_Rs ;El resto de instrucciones imprimen el registro fuente luego de la impresion del registro temporal
+
+Verif_R:
+        cmp r9,0 ;Si la instruccion es un sll, la siguiente impresion es el inmediato
+	je imprimir_Imm
+	cmp r9,2 ;Si la instruccion es un srl, la siguiente impresion es el inmediato
+	je imprimir_Imm
+        jmp termina
+	
+;##################----------------Impresion del inmediato en consola-----------##################
+
 imprimir_Imm:
 	mov r8,r14
 	mov r13,r14
-	shr r8,8
-	impr_inmediato r8 ;macro de inmediato
-	and r13,0xff
-	impr_inmediato r13	
-;	ret
+	shr r8,8 ;obtener la parte alte del inmediato
+	impr_inmediato r8 ;macro de inmediato ;Impresion de parte alta del inmediato
+	and r13,0xff ;elimina parte alta del inmediato, para tener solamente la parte baja en el registro
+	impr_inmediato r13 ;impresion de parte baja del inmediato	
         jmp termina
+	
+;#######################################-----------------DONE-----------------------###############################
 
-;imprimir_Imm:
-;    call inmediato
-;	jmp termina
+termina: ;En esta etiqueta finaliza la lógica para impresion de instrucciones decodificadas
+	impr_texto text_salto,len_salto ;Imprime un punto y un enter
+	ret ;retorno al programa principal, donde se ejecuta la instruccion que se acaba de imprimir
 
-;################## Seccion de llamadas a variables
-siguiente_variable:
-	cmp r8,0
-	je imprimir_Rd
-	cmp r8,4
-	je imprimir_Rs
-	cmp r8,5
-	je imprimir_Rs
-	jmp imprimir_Rt
-
-termina:
-	impr_texto text_salto,len_salto
-	ret
-
+;########################################---------Subrutina de impresion de valores de registros-------------###############
 impr_add:
-	impr_texto text_Snumero,len_Snumero
-	impr_decimal r13
-        impr_texto text_espacio,len_espacio
-	impr_registro [r14]
-        impr_texto text_salto,len_salto
-	add r14,8
-	add r13,1
+	impr_texto text_Snumero,len_Snumero ;Impresion de signo "$"
+	impr_decimal r13 ;Imprimer el numero de registro de MIPS
+        impr_texto text_espacio,len_espacio ;Impresion de signo "-"
+	impr_registro [r14] ;Imprime valor dentro del registro MIPS
+        impr_texto text_salto,len_salto 
+	add r14,8 ;mover la el puntero del stack de regsitros al siguiente registros
+	add r13,1 ;suma el numero de registros para siguiente impresion
 	ret
 ;#################################################################################################################################
 
-; Buffer Size en 4 porque son 4x8: 32 bits
+; BUffer Size en 4 porque son 4x8: 32 bits
 
 section	.data
   ; ### Parte 0 - Mensaje de Bienvenida al Emulador y presentacion del proyecto
@@ -472,23 +475,29 @@ section	.data
   const_curso_size: equ $-const_curso_txt
   const_semestre_txt: db '1S-2017',0xa
   const_semestre_size: equ $-const_semestre_txt
+  
   ;  ### Parte 1 - Mensaje de buscando archivo ###
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
+  
   ; ### Parte 2 - Apertura del archivo ###
   file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
+  
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
   ; ### Parte B - Mensaje de error FILENOTFOUND ###
   const_filenotfound_txt: db 'Archivo ROM.txt no encontrado', 0xa
   const_filenotfound_size: equ $-const_filenotfound_txt
+  
   ; ### Parte A - Mensaje de info FileFound ###
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
   const_filefound_size: equ $-const_filefound_txt
+  
   ; ### Parte C - Mensaje de error - Overflow de instrucciones ###
   const_instoverflow_txt: db 'Error: Existen más instrucciones de las permitidas (150) o hay una instrucción no válida', 0xa
   const_instoverflow_size: equ $-const_instoverflow_txt
+  
   ; ### Parte D - Mensaje para continuar con la ejecuciones
   const_continuar_txt: db 'Presione la tecla enter para continuar con la ejecucion del archivo ROM.txt',0xa
   const_continuar_size: equ $-const_continuar_txt
@@ -504,14 +513,11 @@ section	.data
   
   
 ;###############################################################################################################################################reciente
-fmt:    db "%ld "	; The printf format
+;fmt:    db "%ld "	; The printf format
 
-;
 resulttxt: db 'result.txt',0
 
-;################# seccion de variables a imprimir texto
-ejecutando: db 'Ejecutando la instruccion: '
-ejecutando_len: equ $-ejecutando
+;###########################-----------------Textos para imprimir instrucciones de MIPS-----------------#########################
 
 text_Add: db 'Add '
 len_Add: equ $-text_Add
@@ -712,7 +718,6 @@ section	.text
 
 _start:
     mov rbp, rsp; for correct debugging
-
   ;  ### Mensaje de Entrada al emulador
   impr_shell const_saludo_txt, const_saludo_size
   impr_shell const_curso_txt, const_curso_size
@@ -860,8 +865,8 @@ _startPC:
 	;## abrir el archivo de resultados
     mov rax,2
     mov rdi,resulttxt
-    mov rsi,(2000o+1000o+100o+2o)
-    mov rdx,(700o+40o+4o)
+    mov rsi,(2000o+1000o+100o+2o) ;Permisos y banderas en la escritura del archivo
+    mov rdx,(700o+40o+4o) ;Permisos y banderas en la escritura del archivo
     syscall	
     mov [result_fd],rax
 
@@ -902,7 +907,7 @@ _predecode:
   ; Sacar el Opcode
   mov r8, rdx             ;Hacemos copia de la instruccion
   cmp rdx, 0
-  je _nop
+  je ins_Nop
   shr r8, 26
   and r8, 0x3F
   
@@ -989,9 +994,20 @@ _instoverflow:
   syscall
   jmp Pantalla_salida_error
 
+
+;######################################################################
+;######################################################################
+;######################################################################
+;######################################################################
+;######################################################################
+;################ENVIAR PARA ABAJO ETIQUETA DE SALIDA POR FAVOR########
+;##########################VERIFIQUE QUE FUNCIONA XD###################
+;######################################################################
+;######################################################################
+;######################################################################
+
 _exit:
-  ; ### Cierra el archivo ###
-	;##Cierra el archivo
+  ; ### Cierra archivos ###
 	mov rax,3
 	mov rdi,[result_fd]
 	syscall
@@ -999,31 +1015,28 @@ _exit:
 	mov rax, SYS_CLOSE
 	mov rdi, fd
   	syscall
-  ; ### Exit ###
-	mov rax,60						; Salir del sistema sys_exit
+  ; ### Salida ###
+	mov rax,60		; Salir del sistema sys_exit
 	mov rdi,0
 	syscall
 
-
-;################# seccion carga de datos
-;################# seccion carga de datos
+;###############################----Decodificacion del banco de registros------------------#####################
 deco_RS:
         
 	mov r8,registers ;asigna puntero de arreglo de registros
-    ;impr_texto text_Sv0,len_Sv0
 	;shl r11,3 ;alinear direccion
- 	shl rbx,3  
+ 	shl rbx,3  ;alinear direccion
 	;add r8,r11 ;mueve direccion de puntero
- 	;mov r11,[r8] ;cargo los datos de la direccion de memoria
+ 	;mov r11,[r8] ;cargo los datos del banco de registros
 	add r8,rbx ;mueve direccion de puntero
-	mov rbx,[r8] 
+	mov rbx,[r8]  ;cargo los datos del banco de registros
 	ret
 
 deco_RT:
 	mov r8,registers ;asigna puntero de arreglo de registros
 	shl r10,3 ;alinear direccion
 	add r8,r10 ;mueve direccion de puntero
-	mov r10,[r8] ;cargo los datos de la direccion de memoria
+	mov r10,[r8] ;cargo los datos del banco de registros
 	ret
 
 deco_RD:
@@ -1049,13 +1062,13 @@ llamadas_tipo_I: ;llamada para carga de registros cuando Rt es destino
 	call deco_RT_I
 	ret
 
-; ###################### OPcode
+;###################---------Seccion de Control de la Ejecucion (Identificacion de instrucciones)----------##############
 _decode:
-        
         ;mov r14,r11
-               
-;instrucciones R
-	cmp r8,0 ;identifica instrucciones tipo R
+
+; Identificacion del OPcode para las instrucciones MIPS 
+
+	cmp r8,0 ;Identifica instrucciones tipo R (OPcode = 0)
 	je function_R
 	cmp r8,0x8 ;identifica Addi
 	je ins_Addi
@@ -1079,12 +1092,14 @@ _decode:
 	je ins_Sltiu
 	cmp r8,0xf
 	je ins_Lui ;identifica Lui
-        impr_texto text_error_OPCode, len_error_OPCode
+
+;Notificacion de error, causa de un OPcode invalido
+
+        impr_texto text_error_OPCode, len_error_OPCode 
         impr_registro r15
         jmp Pantalla_salida_error
 	
-;############################
-function_R:
+function_R: ; Identifica el function de las instrucciones tipo R
 	cmp r9,0x20 ;identifica Add
 	je ins_Add
 	cmp r9,0x21 ;identifica Addu
@@ -1111,257 +1126,250 @@ function_R:
 	je ins_Subu
 	cmp r9,0x18 ;identifica Mult
 	je ins_Mult
+	
+;Notificacion de error, causa de function invalido
+	
         impr_texto text_error_Function, len_error_Function
         impr_registro r15
         jmp Pantalla_salida_error
 
-;###### Funcionamiento de instrucciones tipo R
+;#########################--------------Ejecucion de instrucciones tipo R-----------------#######################
 
-ins_Add:
-	impr_texto text_Add,len_Add
-	call siguiente_variable
-	call llamadas_aritmeticas_log
-	mov eax, r10d
-    add eax, ebx
-    ; Ambos positivos
+ins_Add: ;Ejecucion de intruccion Add
+	impr_texto text_Add,len_Add ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
+	mov eax, r10d ;se debe crear una copia del dato antes de hacer la suma para verificar overflow
+    add eax, ebx ;operacion de suma
     cmp r10d, 0
-    jge ins_Add_r11positivo
-    ; Ambos negativos
-    jl ins_Add_r11negativo
+    jge ins_Add_r11positivo ;El primer sumando es positivo
+    jl ins_Add_r11negativo ;El primer sumando es negativo
     	ins_Add_r11positivo:
             cmp ebx, 0
-            jge ins_Add_respositivo
-            jmp ins_Add_ret
+            jge ins_Add_respositivo ;El segundo sumando es positivo, riesgo de overflow
+            jmp ins_Add_ret ;El segundo sumando es negativo, no hay riesgo de overflow
         ins_Add_r11negativo:
             cmp ebx, 0
-            jl ins_Add_resnegativo
-            jmp ins_Add_ret
+            jl ins_Add_resnegativo ;El segundo sumando es negativo, riesgo de overflow
+            jmp ins_Add_ret ;El segundo sumando es positivo, no hay riesgo de overflow
         ins_Add_respositivo:
-            cmp eax, 0
+            cmp eax, 0 ;Verificacion de overflow
             jl overflow
             jmp ins_Add_ret
         ins_Add_resnegativo:
-            cmp eax, 0
-            jge overflow               ; Agregar
+            cmp eax, 0 ;Verificacion de overflow
+            jge overflow            
   
         ins_Add_ret: 
             mov [r8], eax; write back
-	
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Addu: 
-	impr_texto text_Addu,len_Addu
-	call siguiente_variable
-	call llamadas_aritmeticas_log
-	add r10d, ebx; Opera solo 32 bits de r10 y r11
+	impr_texto text_Addu,len_Addu ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
+	add r10d, ebx ;Suma de 32 bits (unsigned)
 	mov [r8], r10d; write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_And:
-	impr_texto text_And,len_And
-	call siguiente_variable
-	call llamadas_aritmeticas_log
+	impr_texto text_And,len_And ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
 	and rbx,r10 ; operacion de and
 	mov [r8],ebx ; write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Jr:
-	impr_texto text_Jr,len_Jr
-	call siguiente_variable
-	call deco_RS
+	impr_texto text_Jr,len_Jr;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call deco_RS ;Decodificacion
 	mov r15, rbx ;asigna nueva direccion al Program Counter
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Nor:
-	impr_texto text_Nor,len_Nor
-	call siguiente_variable
-	call llamadas_aritmeticas_log
+	impr_texto text_Nor,len_Nor ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
 	or rbx,r10 ; operacion de or
 	not rbx ; operacion de negacion
 	mov [r8],ebx ; write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Or:
-	impr_texto text_Or,len_Or
-	call siguiente_variable
-	call llamadas_aritmeticas_log
+	impr_texto text_Or,len_Or ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
 	or rbx,r10 ; operacion de or
 	mov [r8],ebx ; write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
-
-;#################################
 ins_Slt: 
-	impr_texto text_Slt,len_Slt
-	call siguiente_variable
-	call llamadas_aritmeticas_log
-	cmp ebx,r10d
+	impr_texto text_Slt,len_Slt ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
+	cmp ebx,r10d  
 	jge esmayor_sltu ; verificacion de mayor o menor
 	mov r10,1
-	mov [r8],r10d
-	jmp imprimir_all
+	mov [r8],r10d ;Escribe un 1 en "Rd" si Rs es menor a Rt
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Sltu:
 	impr_texto text_Sltu,len_Sltu
-	call siguiente_variable
+	;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_aritmeticas_log
-	cmp rbx,r10
+	cmp rbx,r10 ;comparacion con 64 bits (no tomar en cuenta el signo)
 	jge esmayor_sltu ; verificacion de mayor o menor
 	mov r10,1
-	mov [r8],r10d
-	jmp imprimir_all
+	mov [r8],r10d ;Escribe un 1 en "Rd" si Rs es menor a Rt
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 esmayor_sltu: ;si la comparacion da mayor
 	mov r10,0
-	mov [r8],r10d
-	jmp imprimir_all
-;################################
+	mov [r8],r10d ;Escribe un 0 en "Rd" si Rs no es menor a Rt
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Sll:
-	impr_texto text_Sll,len_Sll
-	call siguiente_variable
-	call deco_RT
-	call deco_RD
-	mov rcx,r14
+	impr_texto text_Sll,len_Sll ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call deco_RT ;decodificacion
+	call deco_RD ;decodificacion
+	mov rcx,r14 ;por restriccion del sistema, solo se pueden usar enteros o registro cl
 	shl r10, cl ;corrimiento a la izquierda
 	mov [r8],r10d ;write back
-	jmp imprimir_all
-        ;jmp _fetch
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Srl:
-	impr_texto text_Srl,len_Srl
-	call siguiente_variable
-	call deco_RT
-	call deco_RD
-	mov rcx,r13
+	impr_texto text_Srl,len_Srl ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call deco_RT ;Decodificacion
+	call deco_RD ;Decodificacion
+	mov rcx,r13 ;por restriccion del sistema, solo se pueden usar enteros o registro cl
 	shr r10,cl ;corrimiento a la derecha
 	mov [r8],r10d ;write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Sub:
-	impr_texto text_Sub,len_Sub
-	call siguiente_variable
-	call llamadas_aritmeticas_log
-	mov eax, r10d
-        mov r14,rbx
-    sub ebx, eax
-    cmp eax, 0
-	jge ins_Sub_r11negativo
-	jl ins_Sub_r11positivo
-	
-	ins_Sub_r11negativo:
-		cmp r14d, 0
-		jle ins_Sub_respositivo
-		jmp ins_Sub_ret
-	ins_Sub_r11positivo:
-		cmp r14d, 0
-		jge ins_Sub_resnegativo
-		jmp ins_Sub_ret
-	ins_Sub_respositivo:
-		cmp ebx, 0
-		jg overflow
-		jmp ins_Sub_ret
-	ins_Sub_resnegativo:
-		cmp ebx, 0
-		jl overflow
-	ins_Sub_ret:
-		mov [r8], ebx; write back
-	jmp imprimir_all
+	impr_texto text_Sub,len_Sub ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;Decodificacion
+	mov eax, r10d ;#######OJO
+        mov r14,rbx ;se debe crear una copia del dato antes de hacer la suma para verificar overflow
+       sub ebx, eax ;Operacion de resta
+       cmp eax, 0
+	jge ins_Sub_r11negativo ;el sustraendo es positivo
+	jl ins_Sub_r11positivo ;el sustraendo es negativo
+ins_Sub_r11negativo:
+	cmp r14d, 0
+	jle ins_Sub_respositivo ;el minuendo es negativo, riesgo de overflow
+	jmp ins_Sub_ret ;el minuendo es positivo, no hay riesgo de overflow
+ins_Sub_r11positivo:
+	cmp r14d, 0
+	jge ins_Sub_resnegativo ;el minuendo es positivo, riesgo de overflow
+	jmp ins_Sub_ret ;el minuendo es negativo, no hay riesgo de overflow
+ins_Sub_respositivo:
+	cmp ebx, 0
+	jg overflow ;Verificacion de overflow
+	jmp ins_Sub_ret
+ins_Sub_resnegativo:
+	cmp ebx, 0
+	jl overflow ;Verificacion de overflow
+ins_Sub_ret:
+	mov [r8], ebx; write back
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Subu:
-	impr_texto text_Subu,len_Subu
-	call siguiente_variable
+	impr_texto text_Subu,len_Subu ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_aritmeticas_log
-        mov rax, r10
+        mov rax, r10 ;###################################OJOOOOOOOOOOOOOOOOO
 	sub rbx,rax ;operacion de resta
 	mov [r8],ebx ;write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Mult: 
-	impr_texto text_Mult,len_Mult
-	call siguiente_variable
-	call llamadas_aritmeticas_log
-         mov r11,0
-        mov r12,0
-        cmp r10,0
-        jg multiplicacion
+	impr_texto text_Mult,len_Mult ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_aritmeticas_log ;#################OJOOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 mov r11,0 ; inicializacion de contador
+        mov r12,0 ;inicializacion de registro almacenador de suma
+        cmp r10,0 ; Verifica si el registro temporal es igual a 0
+        jne multiplicacion ; Si no es cero
 
-finmult:
-        carga 8
-        mov [r14],r12
-        shr r12,32
-        carga 9
-        mov [r14],r12
-        jmp imprimir_all
+finmult: ;Guardar el resultado de la multiplicacion en dos registros
+        carga 8 ; Guarda en registro 8 de MIPS
+        mov [r14],r12 ; Guarda parte baja del registro almacenador (32 bits) ###########################OJJJJJOOOOOOOOOOOOOOOOO!!!!
+        shr r12,32 ;Obtencion de la parte alta del registro almacenador (32 bits)
+        carga 9 ;Guarda en registro 9 de MIPS
+        mov [r14],r12 ; Guarda parte baja del registro almacenador (32 bits)
+        jmp imprimir_all ;Impresion de valores de registros MIPS 
     
 
-multiplicacion:
-      ADD r12,RBX
-      add r11,1  
-      cmp r11,r10
-      jl multiplicacion
-       jmp finmult
+multiplicacion: ;Ejecucion de la multiplicacion
+      ADD r12,RBX ;Se guarda el registro fuente en el almacenador
+      add r11,1  ; se aumenta el contador
+      cmp r11,r10 ;verifica que el contador es igual al valor del registro temporal
+      jl multiplicacion ; si el contador es menor regresa a multiplicacion
+       jmp finmult ; si el contador es igual, guardar el resultado de la multiplicacion en dos registros
 ;####################################Funcionamiento de instrucciones tipo I
 
 ins_Addi:
-	impr_texto text_Addi,len_Addi
-	call siguiente_variable
-	call llamadas_tipo_I   
-	movsx r12d,r12w
-	mov eax, ebx
-    add eax, r12d
-    ; Ambos positivos
+	impr_texto text_Addi,len_Addi ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_tipo_I  ;Decodificacion
+	movsx r12d,r12w ;extesnsion de signo del inmediato
+	mov eax, ebx ;se debe crear una copia del dato antes de hacer la suma para verificar overflow
+    add eax, r12d ;Operacion de suma
     cmp ebx, 0
-    jge ins_Addi_immpositivo
-    ; Ambos negativos
-    jl ins_Addi_immnegativo
+    jge ins_Addi_immpositivo ;El primer sumando es positivo
+    jl ins_Addi_immnegativo ;El primer sumando es negativo
     	ins_Addi_immpositivo:
             cmp r12d, 0
-            jge ins_Addi_respositivo
-            jmp ins_Addi_ret
+            jge ins_Addi_respositivo ;el segundo sumando es positivo, riesgo de overflow
+            jmp ins_Addi_ret ;el segundo sumando es negativo, no hay riesgo de overflow
         ins_Addi_immnegativo:
             cmp r12d, 0
-            jl ins_Addi_resnegativo
-            jmp ins_Addi_ret
+            jl ins_Addi_resnegativo ;el segundo sumando es negativo, riesgo de overflow
+            jmp ins_Addi_ret ;el segundo sumando es positivo, no hay riesgo de overflow
         ins_Addi_respositivo:
             cmp eax, 0
-            jl overflow
+            jl overflow ;Verificacion de overflow
             jmp ins_Addi_ret
         ins_Addi_resnegativo:
             cmp eax, 0
-            jge overflow               ; Agregar
+            jge overflow ;Verificacion de overflow
   
         ins_Addi_ret: 
             mov [r8], eax; write back
-            ;jmp _fetch
-	jmp imprimir_all
+	    jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 
 ins_Andi:
-	impr_texto text_Andi,len_Andi
-	call siguiente_variable
-	call llamadas_tipo_I
+	impr_texto text_Andi,len_Andi ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_tipo_I ;Decodificacion
 	and rbx,r12 ;operacion de and
 	mov [r8],ebx ;write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 ins_Beq:
-	impr_texto text_Beq,len_Beq
-	call siguiente_variable
-	call deco_RS
-	call deco_RT
+	impr_texto text_Beq,len_Beq ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call deco_RS ;Decodificacion
+	call deco_RT ;Decodificacion
 	cmp r10,rbx ; comparacione de registros rs y rt
 	je branch_address ;salto si es valido
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 ins_Bne:
-	impr_texto text_Bne,len_Bne
-	call siguiente_variable
-	call deco_RS
-	call deco_RT
+	impr_texto text_Bne,len_Bne ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call deco_RS ;Decodificacion
+	call deco_RT ;Decodificacion
 	cmp r10,rbx ; comparaciones de registros rs y rt
 	jne branch_address ;salto si es valido
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 branch_address:
 	mov r10,r12 ;copiar el dato para hacer la máscara
@@ -1377,85 +1385,91 @@ Branch:
 
 Crear_Ext:
 	mov r10, 16383 ;14 veces el primer bit del inmediato
-	shl r10,16
+	shl r10,16 ;corrimiento para calculo del branch address
 	or r10,r12 ;Calculo de Branch Address
 	jmp Branch
 
 ins_J:
-	impr_texto text_J,len_J
-	impr_registro r13
+	impr_texto text_J,len_J ;impresion de nombre de la instruccion
+	impr_registro r13 ;impresion de direccion en la instruccion
 	impr_texto text_salto,len_salto
 	jmp JumpAddress
 
 ins_Jal:
-	impr_texto text_Jal,len_Jal
-	impr_registro r13
+	impr_texto text_Jal,len_Jal ;impresion de nombre de la instruccion
+	impr_registro r13 ;impresion de direccion en la instruccion
 	impr_texto text_salto,len_salto
 	mov r8,registers ;asigna puntero de arreglo de registros
-	mov r10,0xf8
+	mov r10,0xf8 ;registro 31 del stack registers
 	add r8,r10 ;mueve direccion de puntero
-	add r15,4
-	mov [r8],r15d ; R[31] = PC + 8
-	sub r15,4
+	add r15,4 ;PC + 8
+	mov [r8],r15d ; R[31] = PC + 8 ;escritura en registro 31
+	sub r15,4 ;Devuelvo el PC a su valor original
 	jmp JumpAddress
 
 JumpAddress:
-         mov r14,r15
-	shr r14, 28
+         mov r14,r15 ;Para no modificar el PC Counter
+	shr r14, 28 ;PAra calculo de JumpAddress
 	shl r14, 26 ;toma de los primeros cuatros bits del PC
-	or r14, r13 
+	or r14, r13 ;Para Calculo de JumpAddress
 	shl r14,2 ; calculo de JumpAddress
-	mov r15,r14
-	jmp imprimir_all
+	mov r15,r14 ;modificacion del PC con el JumpAddress
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 
 ins_Lui:
-	impr_texto text_Lui,len_Lui
-	impr_numero r12
+	impr_texto text_Lui,len_Lui ;impresion del nombre de la instruccion
+	impr_numero r12 ;impresion de inmediato
 	impr_texto text_salto,len_salto
-	call deco_RT_I
-	shl r12,16
-	mov [r8],r12d
-	jmp imprimir_all
+	call deco_RT_I ;Decodificacion
+	shl r12,16 ;{Imm,16b'0}
+	mov [r8],r12d ;write back
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 	
 ins_Lw:
-	impr_texto text_Lw,len_Lw
-	call siguiente_variable
-	call llamadas_tipo_I
-	movsx r12d,r12w
-	add rbx,r12
+	impr_texto text_Lw,len_Lw ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_tipo_I ;Decodificacion
+	movsx r12d,r12w ;Extension de signo
+	add rbx,r12 ; Rs + Imm
 	mov r9,data ;asigna puntero de arreglo de registros
-        and rbx, 0x1ff
-        shl rbx,1
+        and rbx, 0x1ff ;decodificacion para congruencia con direcciones del stack data
+        shl rbx,1 ;decodificacion para congruencia con direcciones del stack data
 	add r9,rbx ;mueve direccion de puntero
-	mov r10d,[r9]
- 	mov [r8],r10d ;cargo los datos de la direccion de memoria
-	jmp imprimir_all
+	mov r10d,[r9] ;Carga el dato de memoria
+ 	mov [r8],r10d ;write back
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 	
 
 ins_Ori:
-	impr_texto text_Ori,len_Ori
-	call siguiente_variable
-	call llamadas_tipo_I
+	impr_texto text_Ori,len_Ori ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_tipo_I ;Decodificacion
 	or rbx,r12 ;operacion de or
 	mov [r8],ebx ;write back
-	jmp imprimir_all
+	jmp imprimir_all ;Impresion de valores de registros MIPS 
 
 ins_Slti:
-	impr_texto text_Slti,len_Slti
-	call siguiente_variable
-        call llamadas_tipo_I
-        movsx r12d,r12w
+	impr_texto text_Slti,len_Slti ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+        call llamadas_tipo_I; Decodificaciones
+        movsx r12d,r12w ;Extension de signo
 	cmp ebx,r12d
 	jge esmayor_sltiu ; verificacion de mayor o menor
 	mov r10,1
-	mov [r8],r10d
-	jmp imprimir_all
+	mov [r8],r10d ;Escribe un "1" si Rs es menor que inmediato
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 ins_Sltiu:
-	impr_texto text_Sltiu,len_Sltiu
-	call siguiente_variable
-	call llamadas_tipo_I
+	impr_texto text_Sltiu,len_Sltiu ;Impresion de nombre de la instruccion
+	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
+	call llamadas_tipo_I ;Decodificacion
+	;###########################
+	;#############################
+	;###############################
+	;EXTENDER SIGNO DECENTEMENTE
+	;############################
+	;#############################
 	mov r10,r12 ;copiar el dato para hacer la máscara
 	shr r10,15 ;corrimiento para hacer la máscara
 	and r10,1 ;captura el bit de signo
@@ -1464,7 +1478,7 @@ ins_Sltiu:
 	jmp Sltiu
 
 SignExtsltiu:
-	or r12,-65536 ;Extiende el signo
+	or r12,-65536 ;Extiende el signo 
 	jmp Sltiu
 
 Sltiu:
@@ -1473,17 +1487,39 @@ Sltiu:
 	cmp ebx,r12d ;comparacion
 	jge esmayor_sltiu ; verificacion de mayor o menor
 	mov rbx,1
-	mov [r8],ebx
-	jmp imprimir_all
+	mov [r8],ebx ;Write back
+	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 esmayor_sltiu: ;si si la comparacion da mayor
 	mov rbx,0
-	mov [r8],ebx ;escribe 0
-	jmp imprimir_all
+	mov [r8],ebx ;escribe 0 si Rs no es menor a inmediato
+	jmp imprimir_all ;Impresion de valores de registros MIPS
+	
+ins_Nop: ;No hace nada xD
+    jmp imprimir_all
+
+
+;#####################################----------Error de Overflow----------------##########################
+overflow:
+        impr_texto text_error_overflow, len_error_overflow
+        carga 2
+tag3:
+	call impr_add
+	cmp r13,8
+	jl tag3
+	carga 16
+tag4:
+	call impr_add
+	cmp r13,24
+	jl tag4
+	carga 29
+	call impr_add
+	carga 31
+	call impr_add
+    jmp Pantalla_salida_error
+	
 	
 ;##############################################seccion de impresion de variables
-
-
 	
 imprimir_all:
 	carga 2
@@ -1506,29 +1542,6 @@ tag2:
 	tecla_get text_enter
 	limpiar_pantalla limpiar,limpiar_tam
 	jmp _fetch
-
-
-overflow:
-        impr_texto text_error_overflow, len_error_overflow
-        carga 2
-tag3:
-	call impr_add
-	cmp r13,8
-	jl tag3
-	carga 16
-tag4:
-	call impr_add
-	cmp r13,24
-	jl tag4
-	carga 29
-	call impr_add
-	carga 31
-	call impr_add
-    jmp Pantalla_salida_error
-
-_nop:
-    jmp _fetch
-
 
 Pantalla_salida_error:
         impr_texto text_ejecucion_fallida,len_ejecucion_fallida
