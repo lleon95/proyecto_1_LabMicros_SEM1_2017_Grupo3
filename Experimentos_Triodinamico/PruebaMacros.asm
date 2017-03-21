@@ -5,6 +5,90 @@
 %define SYS_CLOSE 3
 %define STDOUT 1
 %define BUFFER_SIZE 1
+;####################################----------------------DEFINE de Javi--------------------------########################
+sys_read    equ     0   ;Codigo de lladas al sistema
+sys_write   equ     1
+stdin       equ     0
+stdout      equ     1
+;##############################################-------- seccion de javi MACROS----------####################################
+%macro htb 1    ;Macro para pasar hexadecimal en ascii a hexadecimal en binario
+    mov r9,28   ;Definir constante 28 en registro auxiliar para los shift
+    mov r10,0   ;Inicializar registro de resultado final
+    mov r11,0   ;Inicializar registro auxiliar de contador
+
+ %%extraer:         ;Proceso de extraccion de 8 bits (ascii)
+    mov rcx,r11     ;Copiar valor de registro auxiliar 
+    mov r8, %1      ;Copiar registro de entrada 
+    shr r8,cl       ;Correr a la derecha 2 veces el valor del contador para tener 8 bits de LSBs
+    shr r8,cl     
+    and r8,0xff     ;Mascara para asegurar solo 8 bits
+
+    cmp r8,47       ;Si el codigo ascii es menor a 47 reportar error
+    jle %%argerror  
+    cmp r8,71       ;Si el codigo ascii es mayor a 71 reportar error
+    jge %%argerror
+    cmp r8,58       ;Si el codigo ascii es mayor a 58 probablente sea una letra o sea un error
+    jge %%letras
+
+ %%retletras:
+    sub r8, 48      ;Se resta 48 al codigo ascii para pasarlo a binario
+    mov rcx,r9      ;El contador se pone en 28
+    sub rcx,r11     ;Se le resta el registro auxiliar al contador para hacer el corrimiento correcto
+    shl r8,cl       ;Se realiza el corrimiento respectivo para agregar 4 bits en la posicion correcta
+    or  r10,r8      ;Se agregan 4 bits al resultado final
+
+
+    cmp r11, 28     ;Se compara el registro auxiliar del contador para ver si ya termino la extraccion
+    je %%endhtb     ;Termina el loop
+    add r11,4       ;Se suman 4 al registro auxiliar del contador
+    jmp %%extraer   ;Inicia otro ciclo
+
+ %%letras:          
+    cmp r8, 64      ;Si el codigo ascii es menor a 64 reportar error
+    jle %%argerror
+    sub r8, 7       ;Si no, es una letra y necesita un corrimiento de 7
+    jmp %%retletras
+
+
+ %%argerror:        ;Impresion de Error
+    impr_texto const_argerror_txt,const_argerror_size   
+    impr_texto newline, 1
+    jmp %%endhtb
+
+  %%endhtb:
+%endmacro
+
+
+
+%macro bth 1
+    mov r8, %1
+    mov r9,r8
+    and r8,0xf
+    shr r9,4
+    cmp r8,10
+    jge %%sumar8
+ %%ret1:
+    cmp r9,10
+    jge %%sumar9
+ %%ret2:
+    add r8,48
+    add r9,48
+    jmp %%endbth
+    
+  %%sumar8:
+    add r8,7
+    jmp %%ret1
+  %%sumar9:
+    add r9,7
+    jmp %%ret2  
+   
+  %%endbth:
+%endmacro
+
+
+
+
+
 
 ;################################################-----MACROS-----############################################################
 %macro limpiar_pantalla 2 	;recibe 2 parametros
@@ -515,6 +599,24 @@ section	.data
 ;###############################################################################################################################################reciente
 ;fmt:    db "%ld "	; The printf format
 
+const_argerror_txt: db 'Error de argumento. ', 0xa ;String de Error
+const_argerror_size: equ $-const_argerror_txt      ;Tamano del string
+
+const_fabricante_txt: db 'Fabricante: ', 0xa
+const_fabricante_size: equ $-const_fabricante_txt
+
+const_modelo_txt: db 'Modelo: ', 0xa
+const_modelo_size: equ $-const_modelo_txt
+
+const_familia_txt: db 'Familia: ', 0xa
+const_familia_size: equ $-const_familia_txt
+
+const_tipo_txt: db 'Tipo: ', 0xa
+const_tipo_size: equ $-const_tipo_txt
+
+const_pu_txt: db 'Porcentaje de Utilización: ', 0xa
+const_pu_size: equ $-const_pu_txt
+
 resulttxt: db 'result.txt',0
 
 ;###########################-----------------Textos para imprimir instrucciones de MIPS-----------------#########################
@@ -715,7 +817,7 @@ text_enter: db ''
 
 section	.text
    global _start         ;must be declared for using gcc
-
+newline db 0x0a
 _start:
     mov rbp, rsp; for correct debugging
   ;  ### Mensaje de Entrada al emulador
@@ -873,6 +975,64 @@ _startPC:
   ; ### Parte 9- Preparar el PC y apuntarlo en la posicion inicial ###
   mov r14, r15                ; Repaldar las instrucciones totales que existen (para evitar desbordamientos)
   mov r15, 0x400000           ; Colocar el PC Counter en su posicion inicial
+
+;############################################################################---------------------------Seccion .text de Javi--------------------#############################################
+ push    rbp         ;Empujar rbp al stack
+    mov     rbp, rsp    ;Asignar la direccion de rsp al rbp
+    
+    cmp     dword[rbp + 8], 1   ;Revisar si hay argumentos
+    je      NoArgs              
+     
+    
+    mov     rbx, [rbp + 24]     ;Mover la direccion de los argumentos a los registros de resultados
+    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
+    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+    mov rbx,r10
+    carga 4
+	mov [r14],rbx
+
+	mov     rbx, [rbp + 32]     ;Mover la direccion de los argumentos a los registros de resultados
+    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
+    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+    mov rbx,r10
+    carga 5
+	mov [r14],rbx
+
+	mov     rbx, [rbp + 40]     ;Mover la direccion de los argumentos a los registros de resultados
+    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
+    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+    mov rbx,r10
+    carga 6
+	mov [r14],rbx
+
+	mov     rbx, [rbp + 48]     ;Mover la direccion de los argumentos a los registros de resultados
+    mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
+    htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
+    mov rbx,r10
+    carga 7
+	mov [r14],rbx
+	
+
+    
+    jmp Exit_Javi
+
+NoArgs:                     ;Si no hay argumentos, poner registros en 0
+   mov rbx, 0
+   carga 4
+   mov [r14],rbx
+   carga 5
+   mov [r14],rbx
+   carga 6
+   mov [r14],rbx
+   carga 7
+   mov [r14],rbx	
+   jmp     Exit_Javi
+
+
+Exit_Javi:
+    mov     rsp, rbp        ;Sacar rbp del stack
+    pop     rbp
+;############################################################################---------------------------Finaliza .text de Javi-------------------#############################################
 
 	impr_shell const_continuar_txt, const_continuar_size
   	tecla_get text_enter
@@ -1553,9 +1713,8 @@ Pantalla_salida_error:
         impr_texto text_Danny,len_Danny
         impr_texto text_Keylor,len_Keylor
         impr_texto text_Merayo,len_Merayo
-        impr_texto text_enter_salida,len_enter_salida
-        tecla_get text_enter ;Espera enter
-        jmp _exit
+        
+        jmp micro_info
 
 ;###########################--------------Pantalla de Salida al finalizar Ejecucion exitosamente--------------------##################
 Pantalla_salida_exitosa:
@@ -1566,9 +1725,102 @@ Pantalla_salida_exitosa:
         impr_texto text_Danny,len_Danny
         impr_texto text_Keylor,len_Keylor
         impr_texto text_Merayo,len_Merayo
-        impr_texto text_enter_salida,len_enter_salida
-        tecla_get text_enter ;Espera Enter
-        jmp _exit
+
+        jmp micro_info
+
+
+micro_info:
+
+	;####################### FABRICANTE ########################
+
+mov eax,0
+cpuid  ; obtener id del fabricante
+
+mov [fabricante],ebx        ; guardar resultado en ‘fabricante’
+mov [fabricante+4],edx
+mov [fabricante+8],ecx
+
+; Imprimir el resultado
+impr_texto newline,1
+impr_texto newline,1
+impr_texto newline,1
+impr_texto const_fabricante_txt,const_fabricante_size
+impr_texto fabricante,12
+impr_texto newline,1
+
+
+
+;####################### MODELO ############################
+
+mov eax,1
+cpuid     ; get the model name
+
+mov r8d, eax
+shr r8, 4
+and r8, 0xf
+mov r9d, eax
+shr r9, 12
+and r9, 0xf0
+or r8, r9
+bth r8
+mov [modelo], r9
+mov [modelo+1],r8
+
+; Imprimir el resultado
+impr_texto const_modelo_txt, const_modelo_size
+impr_texto modelo,2
+impr_texto newline,1
+
+
+
+;####################### FAMILIA ############################
+
+mov eax,1
+cpuid     
+
+mov r8d, eax
+shr r8, 8
+and r8, 0xf
+mov r9d, eax
+shr r9, 16
+and r9, 0xf0
+or r8, r9
+bth r8
+mov [familia], r9
+mov [familia+1],r8
+
+; Imprimir el resultado
+impr_texto const_familia_txt, const_familia_size
+impr_texto familia,2
+impr_texto newline,1
+
+
+
+
+;####################### TIPO ############################
+
+mov eax,1
+cpuid     
+
+mov r8d, eax
+shr r8, 12
+and r8, 0x3
+
+bth r8
+mov [tipo], r9
+mov [tipo+1],r8
+
+; Imprimir el resultado
+impr_texto const_tipo_txt, const_tipo_size
+impr_texto tipo,2
+impr_texto newline,1
+impr_texto newline,1
+impr_texto newline,1
+
+impr_texto text_enter_salida,len_enter_salida
+tecla_get text_enter ;Espera enter
+
+jmp _exit
         
 ;################################################################################################################################
 section .bss
@@ -1576,3 +1828,7 @@ section .bss
   result_fd resb 8
   modelo resd  8  ; reservar 8 bytes
   regs resd 8
+   fabricante       resd  12 ; reservar 12 bytes   
+   familia          resd  8  ; reservar 8 bytes
+   tipo             resd  8  ; reservar 8 bytes
+   pu               resd  8  ; reservar 8 bytes
