@@ -166,28 +166,11 @@ _start:
     
     mov     rbx, [rbp + 24]
     mov     rbx, [rbx]
-    ;mov     r12, [rbp + 32]
-    ;mov     r13, [rbp + 40]
-    ;mov     r14, [rbp + 48]
     
     htb rbx
     mov rbx,r10
 
-    ;htb r12
-    ;mov r12,r10
-
-    ;htb r13
-    ;mov r13,r10
-
-    ;htb r14
-    ;mov r14,r10
-
     impr_registro rbx
-    
-
-
-
-
 
     impr_texto newline, 1
     jmp Exit
@@ -195,9 +178,6 @@ _start:
     
 NoArgs:
    mov rbx, 0
-   mov r12, 0
-   mov r13, 0
-   mov r14, 0
    jmp     Exit
 
 ;DisplayNorm:

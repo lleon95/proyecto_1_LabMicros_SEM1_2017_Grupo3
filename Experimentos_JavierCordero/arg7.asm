@@ -138,43 +138,18 @@ _start:
     
     mov     rbx, [rbp + 24]     ;Mover la direccion de los argumentos a los registros de resultados
     mov     rbx, [rbx]          ;Mover el contenido de los argumentos a los resgistros de resultados
-    mov     r12, [rbp + 32]
-    mov     r12, [r12]
-    mov     r13, [rbp + 40]
-    mov     r13, [r13]
-    mov     r14, [rbp + 48]
-    mov     r14, [r14]
+    
     
     htb rbx             ;Llamar a la funcion htb para obtener hexadecimal en binario de cada uno de los argumentos
     mov rbx,r10
 
-    htb r12
-    mov r12,r10
-
-    htb r13
-    mov r13,r10
-
-    htb r14
-    mov r14,r10
-
     impr_registro rbx   ;Imprimir los resultados para comprobar
     impr_texto newline, 1
 
-    impr_registro r12
-    impr_texto newline, 1
-
-    impr_registro r13
-    impr_texto newline, 1
-
-    impr_registro r14
-    impr_texto newline, 1
     jmp Exit
 
 NoArgs:                     ;Si no hay argumentos, poner registros en 0
    mov rbx, 0
-   mov r12, 0
-   mov r13, 0
-   mov r14, 0
    jmp     Exit
 
 
