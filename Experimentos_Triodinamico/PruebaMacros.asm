@@ -1468,6 +1468,7 @@ ins_Sltiu:
 	;#############################
 	;###############################
 	;EXTENDER SIGNO DECENTEMENTE
+	;###PROBAR LUEGO##########
 	;############################
 	;#############################
 	mov r10,r12 ;copiar el dato para hacer la máscara
@@ -1484,10 +1485,10 @@ SignExtsltiu:
 Sltiu:
 	;shl r12,32 ; Corrimientos 
 	;shr r12,32 
-	cmp ebx,r12d ;comparacion
+	cmp rbx,r12 ;comparacion de 64 bits (no toma en cuenta el signo)
 	jge esmayor_sltiu ; verificacion de mayor o menor
 	mov rbx,1
-	mov [r8],ebx ;Write back
+	mov [r8],ebx ;Escribe "1" si Rs es menor a inmediato
 	jmp imprimir_all ;Impresion de valores de registros MIPS
 
 esmayor_sltiu: ;si si la comparacion da mayor
@@ -1502,47 +1503,48 @@ ins_Nop: ;No hace nada xD
 ;#####################################----------Error de Overflow----------------##########################
 overflow:
         impr_texto text_error_overflow, len_error_overflow
-        carga 2
+        carga 2 ;Se mueve el puntero del stack registers al registro 2
 tag3:
 	call impr_add
-	cmp r13,8
-	jl tag3
-	carga 16
+	cmp r13,10
+	jl tag3 ;Impresion del registro 2-10
+	carga 16 ;Se mueve el puntero del stack registers al registro 16
 tag4:
 	call impr_add
 	cmp r13,24
-	jl tag4
-	carga 29
-	call impr_add
-	carga 31
-	call impr_add
-    jmp Pantalla_salida_error
+	jl tag4 ; Impresion del registro 16-24
+	carga 29 ;Se mueve el puntero del stack registers al registro 29
+	call impr_add ;Impresion del registro 29
+	carga 31 ;Se mueve el puntero del stack registers al registro 31
+	call impr_add ;Impresion del registro 31
+    jmp Pantalla_salida_error 
 	
 	
-;##############################################seccion de impresion de variables
+;####################################-------- Seccion de impresion de valores de registros--------#################
 	
 imprimir_all:
-	carga 2
+	carga 2 ;Se mueve el puntero del stack registers al registro 2
 	
 tag1:
 
 	call impr_add
 	cmp r13,10
-	jl tag1
-	carga 16
+	jl tag1 ;Impresion del registro 2-10
+	carga 16 ;Se mueve el puntero del stack registers al registro 16
 tag2:
            
 	call impr_add
 	cmp r13,24
-	jl tag2
-	carga 29
-	call impr_add
-	carga 31
-	call impr_add
-	tecla_get text_enter
-	limpiar_pantalla limpiar,limpiar_tam
-	jmp _fetch
+	jl tag2 ; Impresion del registro 16-24
+	carga 29 ;Se mueve el puntero del stack registers al registro 29
+	call impr_add ;Impresion del registro 29
+	carga 31 ;Se mueve el puntero del stack registers al registro 31
+	call impr_add ;Impresion del registro 31
+	tecla_get text_enter ;Espera enter para ejecutar siguiente instruccion
+	limpiar_pantalla limpiar,limpiar_tam ;Clear
+	jmp _fetch ;busqueda de siguiente instruccion.
 
+;###########################--------------Pantalla de Salida del sistema por error--------------------##################
 Pantalla_salida_error:
         impr_texto text_ejecucion_fallida,len_ejecucion_fallida
         impr_texto text_Desarrolladores,len_Desarrolladores
@@ -1552,9 +1554,10 @@ Pantalla_salida_error:
         impr_texto text_Keylor,len_Keylor
         impr_texto text_Merayo,len_Merayo
         impr_texto text_enter_salida,len_enter_salida
-        tecla_get text_enter
+        tecla_get text_enter ;Espera enter
         jmp _exit
-        
+
+;###########################--------------Pantalla de Salida al finalizar Ejecucion exitosamente--------------------##################
 Pantalla_salida_exitosa:
         impr_texto text_ejecucion_exitosa,len_ejecucion_exitosa
         impr_texto text_Desarrolladores,len_Desarrolladores
@@ -1564,10 +1567,10 @@ Pantalla_salida_exitosa:
         impr_texto text_Keylor,len_Keylor
         impr_texto text_Merayo,len_Merayo
         impr_texto text_enter_salida,len_enter_salida
-        tecla_get text_enter
+        tecla_get text_enter ;Espera Enter
         jmp _exit
         
-
+;################################################################################################################################
 section .bss
   file_buffer resb BUFFER_SIZE
   result_fd resb 8
