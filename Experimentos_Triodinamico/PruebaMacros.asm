@@ -135,8 +135,8 @@ jne %%impr_r9  ;imprime la decena
 	add r14,r10
 %endmacro
 
-;#################seccion de compracion de Rd
-imprimir_Rd:
+;#################--------Seccion de comparacion de Rd-------------------#########################
+imprimir_Rd: ;Identificacion de registro destino, para impresion
 	cmp r12,2
 	je Rd_v0
 	cmp r12,3
@@ -167,7 +167,7 @@ imprimir_Rd:
 	je Rd_s7
 	cmp r12,29
 	je Rd_sp   
-    impr_texto text_error_Rd, len_error_Rd
+    impr_texto text_error_Rd, len_error_Rd ;Si el registro en la instruccion no existe en el emulador, error
 	jmp Pantalla_salida_error
 
 Rd_v0:
