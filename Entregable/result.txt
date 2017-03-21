@@ -1,0 +1,22 @@
+ERROR! Codigo de operacion invalido en la intruccion correpondiente a la direccion: 
+00400004Ejecucion Fallida
+Desarrolladores:
+Javier Alonso Cordero Quiros     Carne: 2014115782
+Luis Gerardo Leon Vega     Carne: 2014069639
+Danny Gabriel Mejias Anchia     Carne: 2014159999
+Keylor Andres Mena Venegas     Carne: 20140108164
+Luis Orlando Merayo Gatica     Carne: 2014049811
+
+
+
+Fabricante: 
+GenuineIntel
+Modelo: 
+3C
+Familia: 
+06
+Tipo: 
+00
+
+
+Presione Enter para terminar

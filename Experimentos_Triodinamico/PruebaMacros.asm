@@ -1,4 +1,4 @@
-;%include "io64.inc"
+%include "io64.inc"
 %define SYS_READ 0
 %define SYS_OPEN 2
 %define SYS_WRITE 1
@@ -565,7 +565,7 @@ section	.data
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/Entregable/ROM.txt'
   
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
@@ -805,7 +805,7 @@ len_Keylor: equ $-text_Keylor
 text_Danny: db 'Danny Gabriel Mejias Anchia     Carne: 2014159999',0xa
 len_Danny: equ $-text_Danny
 
-text_Javi: db 'Javier Cordero Quiros     Carne: 2014115782',0xa
+text_Javi: db 'Javier Alonso Cordero Quiros     Carne: 2014115782',0xa
 len_Javi: equ $-text_Javi
 
 text_Merayo: db 'Luis Orlando Merayo Gatica     Carne: 2014049811',0xa
@@ -816,9 +816,10 @@ text_enter: db ''
 ;###############################################################################################################################################
 
 section	.text
-   global _start         ;must be declared for using gcc
-newline db 0x0a
-_start:
+   global CMAIN        ;must be declared for using gcc
+    newline db 0x0a
+    
+CMAIN:
     mov rbp, rsp; for correct debugging
   ;  ### Mensaje de Entrada al emulador
   impr_shell const_saludo_txt, const_saludo_size
@@ -1263,7 +1264,7 @@ function_R: ; Identifica el function de las instrucciones tipo R
 	je ins_Subu
 	cmp r9,0x18 ;identifica Mult
 	je ins_Mult
-	Impr_texto text_error_Function, len_error_Function ;Notificacion de error, causa de function invalido
+	impr_texto text_error_Function, len_error_Function ;Notificacion de error, causa de function invalido
         impr_registro r15
         jmp Pantalla_salida_error
 
