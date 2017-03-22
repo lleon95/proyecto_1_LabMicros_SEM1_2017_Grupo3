@@ -1,4 +1,4 @@
-%include "io64.inc"
+;%include "io64.inc"
 %define SYS_READ 0
 %define SYS_OPEN 2
 %define SYS_WRITE 1
@@ -565,7 +565,7 @@ section	.data
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/Entregable/ROM.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
   
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
@@ -816,10 +816,10 @@ text_enter: db ''
 ;###############################################################################################################################################
 
 section	.text
-   global CMAIN        ;must be declared for using gcc
+   global _start      ;must be declared for using gcc
     newline db 0x0a
     
-CMAIN:
+_start:
     mov rbp, rsp; for correct debugging
   ;  ### Mensaje de Entrada al emulador
   impr_shell const_saludo_txt, const_saludo_size
@@ -854,9 +854,9 @@ _fileread:
   je _startPC	; Comenzar el procesador
 
   ; Mostrar contenido en consola
-  mov r8, 0
+  mov r14, 0
 
-  mov r8, [file_buffer]
+  mov r14, [file_buffer]
   mov rdx, rax
   mov rax, SYS_WRITE
   mov rdi, STDOUT
@@ -1052,11 +1052,15 @@ _fetch:
 _predecode:
   ; ### Parte 14 - Obtener las componentes de la instrucción (opcode, function, ...) ###
   ; Sacar el Opcode
+  impr_registro rdx
+  mov r8, 0
   mov r8, rdx             ;Hacemos copia de la instruccion
   cmp rdx, 0
   je ins_Nop
   shr r8, 26
   and r8, 0x3F
+ mov [modelo], r8
+impr_registro [modelo]
   
   ; Verificar si es R
   cmp r8, 0
@@ -1208,7 +1212,7 @@ llamadas_tipo_I: ;llamada para carga de registros cuando Rt es destino
 _decode:
         ;mov r14,r11
 ; Identificacion del OPcode para las instrucciones MIPS 
-
+        ;impr_decimal [modelo]
 	cmp r8,0 ;Identifica instrucciones tipo R (OPcode = 0)
 	je function_R
 	cmp r8,0x8 ;identifica Addi

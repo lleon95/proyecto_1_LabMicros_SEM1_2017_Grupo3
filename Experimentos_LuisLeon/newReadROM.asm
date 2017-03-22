@@ -11,7 +11,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/lleon95/Documentos/proyecto_1_LabMicros_SEM1_2017_Grupo3/Experimentos_LuisLeon/ROM_Test.txt'
+  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
@@ -84,6 +84,8 @@ _fileread:
   je _activarComentario
   cmp r8, 10; Ver si es fin de línea
   je _writeMem
+  cmp r8, 13; Ver si es retorno de carro
+  je _fileread
   cmp r9, 2 ; Ver si está el modo de comentario
   je _fileread
   cmp r8, 0x5b ; Ver si inicia la direccion

@@ -223,6 +223,10 @@ jne %%impr_r9  ;imprime la decena
 ;En esta subrutina, se decribe la lógica para la impresión de las intrucciones decodificadas en la consola, esta dependerá del formato
 ;de la instrución en la mayoría de casos, tambien de su código de operación y la funcion. 
 siguiente_variable:
+	cmp r9,0x8
+	je siguiente_Rd
+	cmp r9,0x18
+	je siguiente_Rd
 	cmp r8,0 ;Si la instruccion es tipo R, siempre se imprime el registro destino primero
 	je imprimir_Rd
 	cmp r8,4 ;Si la instruccion es una bifurcacion, imprime primero el registro fuente
@@ -263,6 +267,8 @@ imprimir_Rd: ;Identificacion de registro destino, para impresion en consola
 	je Rd_s7
 	cmp r12,29
 	je Rd_sp   
+	cmp r12,31
+	je Rd_ra
     	impr_texto text_error_Rd, len_error_Rd ;Si el registro destino en la instruccion no existe en el emulador, error
 	jmp Pantalla_salida_error
 
@@ -312,6 +318,10 @@ Rd_s7:
 Rd_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rd	
+Rd_ra:
+	impr_texto text_Sra,len_Sra
+	jmp siguiente_Rd
+
 
 siguiente_Rd: ;Identificacion de siguiente registro de impresion en consola
         cmp r9,0 ;Si es un sll, la siguiente impresion es del registro temporal
@@ -355,11 +365,16 @@ imprimir_Rs: ;Identificacion de registro fuente, para impresion en consola
     je Rs_s7
     cmp r11,29
     je Rs_sp
+	cmp r11,31
+	je Rs_ra
+Error_Rs:
     impr_texto text_error_Rs, len_error_Rs ;Si el registro fuente en la instruccion no existe en el emulador, error
     jmp Pantalla_salida_error
 
 ;##################----------------Impresion de registros fuente en consola-----------##################
 Rs_zero:
+	cmp r9, 0x8
+	je Error_Rs
 	impr_texto text_Szero,len_Szero
 	jmp siguiente_Rs
 Rs_v0:
@@ -407,8 +422,12 @@ Rs_s7:
 Rs_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rs
+Rs_ra:
+	impr_texto text_Sra,len_Sra
+	jmp siguiente_Rs
 
-siguiente_Rs: ;Identificacion de siguiente registro de impresion en consola
+siguiente_Rs: ;Identificacion de siguiente registro de impresion en consola\
+	
 	cmp r8,0 ;Si la instruccion ejecutada es tipo R, lo siguiente es imprimir el registro temporal
 	je imprimir_Rt
 	cmp r8,4 ;Si es un beq, la siguiente impresion es del registro temporal
@@ -451,11 +470,23 @@ imprimir_Rt: ;Identificacion de registro temporal, para impresion en consola
 	je Rt_s7
 	cmp r10,29
 	je Rt_sp
-    	impr_texto text_error_Rt, len_error_Rt ;Si el registro temporal en la instruccion no existe en el emulador, error
+	cmp r10,31
+	je Rt_ra
+ Rt_Error:   	impr_texto text_error_Rt, len_error_Rt ;Si el registro temporal en la instruccion no existe en el emulador, error
 	jmp Pantalla_salida_error
 
 ;######################----------------Impresion de registros temporales en consola-----------##################
 Rt_zero:
+	cmp r9,8
+	je termina
+	cmp r8, 0
+	je Rt_Valido
+	cmp r8, 4
+	je Rt_Valido
+	cmp r8, 5
+	je Rt_Valido
+	jmp Rt_Error
+Rt_Valido:
 	impr_texto text_Szero, len_Szero
 	jmp siguiente_Rt
 Rt_v0:
@@ -503,6 +534,10 @@ Rt_s7:
 Rt_sp:
 	impr_texto text_Ssp,len_Ssp
 	jmp siguiente_Rt
+Rt_ra:
+	impr_texto text_Sra,len_Sra
+	jmp siguiente_Rt
+
 	
 siguiente_Rt: ;Identificacion de siguiente registro de impresion en consola
         cmp r8,0 ;Verifica si es una instruccion tipo R
@@ -565,7 +600,7 @@ section	.data
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
+  file_name db 'ROM.txt'
   
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
@@ -590,7 +625,7 @@ section	.data
 
   ; ### Parte Fetch ###
   instructions TIMES 150 dd 0   ; Cargar el arreglo de instrucciones 150 inst
-  data TIMES 512 db -1           ; Cargar el arreglo de memoria en 512 (0x190) words
+  data TIMES 512 dd -1           ; Cargar el arreglo de memoria en 512 (0x190) words
   ;stack TIMES 100 dd -1          ; Cargar el arreglo de stack de 100 palabras --- DUDA!!!!
   registers TIMES 64 dd 0        ; Cargar los registros del microprocesador
   ;temp dq 0
@@ -745,6 +780,9 @@ len_Sv0: equ $-text_Sv0
 text_Sv1: db '$v1 '
 len_Sv1: equ $-text_Sv1
 
+text_Sra: db '$ra '
+len_Sra: equ $-text_Sra
+
 text_Snumero: db '$'
 len_Snumero: equ $-text_Snumero
 
@@ -853,6 +891,7 @@ _fileread:
   je _startPC	; Comenzar el procesador
 
   ; Mostrar contenido en consola
+  mov r8, 0
 
   mov r8, [file_buffer]
   mov rdx, rax
@@ -864,12 +903,14 @@ _fileread:
   ; ## Filtrado de datos
   cmp r8, 32    ; Ver si es espacio
   je _fileread
+  cmp r8, 9    ; Ver si es tab
+  je _fileread
   cmp r8, 59    ; Ver si es ;
   je _activarComentario
   cmp r8, 10; Ver si es fin de línea
   je _writeMem
-  ;cmp r8, 13; Ver si es retorno carro
-  ;je _writeMem
+  cmp r8, 13; Ver si es fin de línea
+  je _fileread
   cmp r9, 2 ; Ver si está el modo de comentario
   je _fileread
   cmp r8, 0x5b ; Ver si inicia la direccion
@@ -1417,7 +1458,7 @@ ins_Subu:
 	impr_texto text_Subu,len_Subu ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_aritmeticas_log
-        mov rax, r10 ;###################################OJOOOOOOOOOOOOOOOOO
+    mov rax, r10 ;###################################OJOOOOOOOOOOOOOOOOO
 	sub rbx,rax ;operacion de resta
 	mov [r8],ebx ;write back
 	jmp imprimir_all ;Impresion de valores de registros MIPS
@@ -1441,7 +1482,7 @@ finmult: ;Guardar el resultado de la multiplicacion en dos registros
     
 
 multiplicacion: ;Ejecucion de la multiplicacion
-      ADD r12,RBX ;Se guarda el registro fuente en el almacenador
+      ADD r12,rbx ;Se guarda el registro fuente en el almacenador
       add r11,1  ; se aumenta el contador
       cmp r11,r10 ;verifica que el contador es igual al valor del registro temporal
       jl multiplicacion ; si el contador es menor regresa a multiplicacion
@@ -1565,8 +1606,8 @@ ins_Lw:
 	movsx r12d,r12w ;Extension de signo
 	add rbx,r12 ; Rs + Imm
 	mov r9,data ;asigna puntero de arreglo de registros
-        and rbx, 0x1ff ;decodificacion para congruencia con direcciones del stack data
-        shl rbx,1 ;decodificacion para congruencia con direcciones del stack data
+    and rbx, 0x1ff ;decodificacion para congruencia con direcciones del stack data
+    ;shl rbx,1 ;decodificacion para congruencia con direcciones del stack data
 	add r9,rbx ;mueve direccion de puntero
 	mov r10d,[r9] ;Carga el dato de memoria
  	mov [r8],r10d ;write back
