@@ -1177,17 +1177,6 @@ _instoverflow:
   ; ### Parte C - Mensaje de instrucciones overflow ###
   impr_shell const_instoverflow_txt, const_instoverflow_size
   jmp Pantalla_salida_error
-  
-;######################################################################
-;######################################################################
-;######################################################################
-;######################################################################
-;######################################################################
-;################ENVIAR PARA ABAJO ETIQUETA DE SALIDA POR FAVOR########
-;##########################VERIFIQUE QUE FUNCIONA XD###################
-;######################################################################
-;######################################################################
-;######################################################################
 
 _exit:
   ; ### Cierra archivos ###
@@ -1458,7 +1447,7 @@ ins_Subu:
 	impr_texto text_Subu,len_Subu ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_aritmeticas_log
-    mov rax, r10 ;###################################OJOOOOOOOOOOOOOOOOO
+    mov rax, r10
 	sub rbx,rax ;operacion de resta
 	mov [r8],ebx ;write back
 	jmp imprimir_all ;Impresion de valores de registros MIPS
@@ -1466,15 +1455,16 @@ ins_Subu:
 ins_Mult: 
 	impr_texto text_Mult,len_Mult ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
-	call llamadas_aritmeticas_log ;#################OJOOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	 mov r11,0 ; inicializacion de contador
+	call deco_RS ;Decode
+	call deco_RT ;Decode
+	 mov r9,0 ; inicializacion de contador
      mov r8,0 ;inicializacion de registro almacenador de suma
         cmp r10,0 ; Verifica si el registro temporal es igual a 0
         jne multiplicacion ; Si no es cero
 
 finmult: ;Guardar el resultado de la multiplicacion en dos registros
         carga 8 ; Guarda en registro 8 de MIPS
-        mov [r14],r8d ; Guarda parte baja del registro almacenador (32 bits) ###########################OJJJJJOOOOOOOOOOOOOOOOO!!!!
+        mov [r14],r8d ; Guarda parte baja del registro almacenador (32 bits) 
         shr r8,32 ;Obtencion de la parte alta del registro almacenador (32 bits)
         carga 9 ;Guarda en registro 9 de MIPS
         mov [r14],r8d ; Guarda parte baja del registro almacenador (32 bits)
@@ -1484,21 +1474,21 @@ finmult: ;Guardar el resultado de la multiplicacion en dos registros
 multiplicacion: ;Ejecucion de la multiplicacion	
 	  cmp r10d,0
 	  jl mult_negativa
-multi:
-      ADD r8,rbx ;Se guarda el registro fuente en el almacenador
-      add r11,1  ; se aumenta el contador
-      cmp r11,r10 ;verifica que el contador es igual al valor del registro temporal
+
+
+multi:  add r8,rbx ;Se guarda el registro fuente en el almacenador
+      add r9,1  ; se aumenta el contador
+      cmp r9d,r10d ;verifica que el contador es igual al valor del registro temporal
       jl multi ; si el contador es menor regresa a multiplicacion
        jmp finmult ; si el contador es igual, guardar el resultado de la multiplicacion en dos registros
 
 mult_negativa:
 	  neg r10
-
 loop_mult:
-	
+	impr_texto text_Addi,len_Addi
 	  add r8,rbx ;Se guarda el registro fuente en el almacenador
-      add r11,1  ; se aumenta el contador
-      cmp r11,r10 ;verifica que el contador es igual al valor del registro temporal
+      add r9,1  ; se aumenta el contador
+      cmp r9d,r10d ;verifica que el contador es igual al valor del registro temporal
       jl loop_mult ; si el contador es menor regresa a multiplicacion
 	  neg r8
       jmp finmult ; si el contador es igual, guardar el resultado de la multiplicacion en dos registros
@@ -1509,7 +1499,7 @@ ins_Addi:
 	impr_texto text_Addi,len_Addi ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_tipo_I  ;Decodificacion
-	movsx r12d,r12w ;extesnsion de signo del inmediato
+	movsx r12d,r12w ;extension de signo del inmediato
 	mov eax, ebx ;se debe crear una copia del dato antes de hacer la suma para verificar overflow
     add eax, r12d ;Operacion de suma
     cmp ebx, 0
@@ -1640,8 +1630,8 @@ ins_Ori:
 ins_Slti:
 	impr_texto text_Slti,len_Slti ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
-        call llamadas_tipo_I; Decodificaciones
-        movsx r12d,r12w ;Extension de signo
+    call llamadas_tipo_I; Decodificaciones
+    movsx r12d,r12w ;Extension de signo
 	cmp ebx,r12d
 	jge esmayor_sltiu ; verificacion de mayor o menor
 	mov r10,1
@@ -1652,27 +1642,7 @@ ins_Sltiu:
 	impr_texto text_Sltiu,len_Sltiu ;Impresion de nombre de la instruccion
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call llamadas_tipo_I ;Decodificacion
-	;###########################
-	;#############################
-	;###############################
-	;EXTENDER SIGNO DECENTEMENTE
-	;###PROBAR LUEGO##########
-	;############################
-	;#############################
-	mov r10,r12 ;copiar el dato para hacer la máscara
-	shr r10,15 ;corrimiento para hacer la máscara
-	and r10,1 ;captura el bit de signo
-	cmp r10,1 ;si el número es negativo
-	je SignExtsltiu
-	jmp Sltiu
-
-SignExtsltiu:
-	or r12,-65536 ;Extiende el signo 
-	jmp Sltiu
-
-Sltiu:
-	;shl r12,32 ; Corrimientos 
-	;shr r12,32 
+	movsx r12d,r12w
 	cmp rbx,r12 ;comparacion de 64 bits (no toma en cuenta el signo)
 	jge esmayor_sltiu ; verificacion de mayor o menor
 	mov rbx,1
