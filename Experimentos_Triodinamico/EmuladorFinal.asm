@@ -1485,7 +1485,6 @@ multi:  add r8,rbx ;Se guarda el registro fuente en el almacenador
 mult_negativa:
 	  neg r10
 loop_mult:
-	impr_texto text_Addi,len_Addi
 	  add r8,rbx ;Se guarda el registro fuente en el almacenador
       add r9,1  ; se aumenta el contador
       cmp r9d,r10d ;verifica que el contador es igual al valor del registro temporal
