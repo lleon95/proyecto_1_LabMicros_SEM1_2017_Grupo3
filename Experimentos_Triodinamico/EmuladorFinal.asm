@@ -598,16 +598,11 @@ section	.data
   ;  ### Parte 1 - Mensaje de buscando archivo ###
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
-  
-  ; ### Parte 2 - Apertura del archivo ###
-  file_name db 'ROM.txt'
-  
-  ; ### Parte 3 - Comprobación de correcto ###
-  fd dw 0
 
   ; ### Parte B - Mensaje de error FILENOTFOUND ###
   const_filenotfound_txt: db 'Archivo ROM.txt no encontrado', 0xa
   const_filenotfound_size: equ $-const_filenotfound_txt
+  
   
   ; ### Parte A - Mensaje de info FileFound ###
   const_filefound_txt: db 'Archivo ROM.txt encontrado', 0xa
@@ -852,6 +847,12 @@ len_Merayo: equ $-text_Merayo
 ;###############################################################################################################################################
 text_enter: db ''
 ;###############################################################################################################################################
+
+  ; ### Parte 2 - Apertura del archivo ###
+  file_name db 'ROM.txt'
+  
+  ; ### Parte 3 - Comprobación de correcto ###
+  fd dw 0
 
 section	.text
    global _start         ;must be declared for using gcc
@@ -1457,6 +1458,7 @@ ins_Mult:
 	call siguiente_variable ;Impresion de registros involucrados en la isntruccion e inmediato (si lo requiere)
 	call deco_RS ;Decode
 	call deco_RT ;Decode
+	movsx rbx, ebx
 	 mov r9,0 ; inicializacion de contador
      mov r8,0 ;inicializacion de registro almacenador de suma
         cmp r10,0 ; Verifica si el registro temporal es igual a 0
@@ -1702,13 +1704,13 @@ tag2:
 
 ;###########################--------------Pantalla de Salida del sistema por error--------------------##################
 Pantalla_salida_error:
-        impr_texto text_ejecucion_fallida,len_ejecucion_fallida
-        impr_texto text_Desarrolladores,len_Desarrolladores
-        impr_texto text_Javi,len_Javi
-        impr_texto text_Leon,len_Leon
-        impr_texto text_Danny,len_Danny
-        impr_texto text_Keylor,len_Keylor
-        impr_texto text_Merayo,len_Merayo        
+        impr_shell text_ejecucion_fallida,len_ejecucion_fallida
+        impr_shell text_Desarrolladores,len_Desarrolladores
+        impr_shell text_Javi,len_Javi
+        impr_shell text_Leon,len_Leon
+        impr_shell text_Danny,len_Danny
+        impr_shell text_Keylor,len_Keylor
+        impr_shell text_Merayo,len_Merayo        
         jmp micro_info
 
 ;###########################--------------Pantalla de Salida al finalizar Ejecucion exitosamente--------------------##################
@@ -1735,12 +1737,12 @@ mov [fabricante+4],edx
 mov [fabricante+8],ecx
 
 ; Imprimir el resultado
-impr_texto newline,1
-impr_texto newline,1
-impr_texto newline,1
-impr_texto const_fabricante_txt,const_fabricante_size
-impr_texto fabricante,12
-impr_texto newline,1
+impr_shell newline,1
+impr_shell newline,1
+impr_shell newline,1
+impr_shell const_fabricante_txt,const_fabricante_size
+impr_shell fabricante,12
+impr_shell newline,1
 
 ;####################### MODELO ############################
 
@@ -1759,9 +1761,9 @@ mov [modelo], r9
 mov [modelo+1],r8
 
 ; Imprimir el resultado
-impr_texto const_modelo_txt, const_modelo_size
-impr_texto modelo,2
-impr_texto newline,1
+impr_shell const_modelo_txt, const_modelo_size
+impr_shell modelo,2
+impr_shell newline,1
 
 ;####################### FAMILIA ############################
 
@@ -1780,9 +1782,9 @@ mov [familia], r9
 mov [familia+1],r8
 
 ; Imprimir el resultado
-impr_texto const_familia_txt, const_familia_size
-impr_texto familia,2
-impr_texto newline,1
+impr_shell const_familia_txt, const_familia_size
+impr_shell familia,2
+impr_shell newline,1
 
 ;####################### TIPO ############################
 
@@ -1798,13 +1800,13 @@ mov [tipo], r9
 mov [tipo+1],r8
 
 ; Imprimir el resultado
-impr_texto const_tipo_txt, const_tipo_size
-impr_texto tipo,2
-impr_texto newline,1
-impr_texto newline,1
-impr_texto newline,1
+impr_shell const_tipo_txt, const_tipo_size
+impr_shell tipo,2
+impr_shell newline,1
+impr_shell newline,1
+impr_shell newline,1
 
-impr_texto text_enter_salida,len_enter_salida
+impr_shell text_enter_salida,len_enter_salida
 tecla_get text_enter ;Espera enter
 
 jmp _exit

@@ -11,7 +11,7 @@ section	.data
   const_buscandoROM_txt: db 'Buscando archivo ROM.txt', 0xa
   const_buscandoROM_size: equ $-const_buscandoROM_txt
   ; ### Parte 2 - Apertura del archivo ###
-  file_name db '/home/tec/Desktop/Github/proyecto_1_LabMicros_SEM1_2017_Grupo3/ROM_Test.txt'
+  file_name db '/home/lleon95/Desktop/ROM.txt'
   ; ### Parte 3 - Comprobación de correcto ###
   fd dw 0
 
